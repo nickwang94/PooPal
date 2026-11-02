@@ -81,8 +81,8 @@ struct HomeView: View {
                     .foregroundStyle(Theme.ink)
                 VStack(spacing: 0) {
                     ForEach(entries.prefix(3)) { entry in
-                        HStack {
-                            Text("💩")
+                        HStack(spacing: 10) {
+                            IconBadge(icon: .mascot, tint: Theme.cream, size: 30)
                             Text(DateText.short(entry.timestamp))
                                 .font(.rounded(16, weight: .medium))
                                 .foregroundStyle(Theme.ink)
@@ -107,7 +107,8 @@ struct HomeView: View {
     private var toast: some View {
         if let lastLogged {
             HStack(spacing: 12) {
-                Text("记下啦！\(DateText.time(lastLogged.timestamp)) 💩")
+                IconBadge(icon: .symbol("checkmark"), tint: .white, size: 28)
+                Text("记下啦！\(DateText.time(lastLogged.timestamp))")
                     .font(.rounded(16, weight: .semibold))
                     .foregroundStyle(Theme.ink)
                 Spacer()
@@ -163,9 +164,14 @@ struct MoodCard: View {
             PoopMascot(expression: expression)
                 .frame(width: 64, height: 64)
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(mood.title) \(mood.emoji)")
-                    .font(.rounded(19, weight: .bold))
-                    .foregroundStyle(Theme.ink)
+                HStack(spacing: 6) {
+                    Text(mood.title)
+                        .font(.rounded(19, weight: .bold))
+                        .foregroundStyle(Theme.ink)
+                    Image(systemName: mood.symbol)
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.poop)
+                }
                 Text(mood.message)
                     .font(.rounded(14))
                     .foregroundStyle(Theme.inkSoft)
@@ -234,18 +240,18 @@ struct StatsGrid: View {
         let since = StatsFormat.daysSince(stats.daysSinceLast)
         let interval = StatsFormat.interval(stats.averageIntervalDays)
         LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-            StatTile(icon: "⏳", title: "距上次", value: since.value, unit: since.unit, tint: Theme.sky)
-            StatTile(icon: "📈", title: "平均每天", value: StatsFormat.perDay(stats.averagePerDay), unit: "次", tint: Theme.mint)
-            StatTile(icon: "🔁", title: "平均间隔", value: interval.value, unit: interval.unit, tint: Theme.pink)
-            StatTile(icon: "🗓️", title: "近 7 天", value: "\(stats.last7DaysCount)", unit: "次", tint: Theme.butter)
-            StatTile(icon: "🌙", title: "近 30 天", value: "\(stats.last30DaysCount)", unit: "次", tint: Theme.lavender)
-            StatTile(icon: "💩", title: "累计记录", value: "\(stats.totalCount)", unit: "次", tint: Theme.peach)
+            StatTile(icon: .symbol("hourglass"), title: "距上次", value: since.value, unit: since.unit, tint: Theme.sky)
+            StatTile(icon: .symbol("chart.line.uptrend.xyaxis"), title: "平均每天", value: StatsFormat.perDay(stats.averagePerDay), unit: stats.averagePerDay == nil ? "" : "次", tint: Theme.mint)
+            StatTile(icon: .symbol("arrow.triangle.2.circlepath"), title: "平均间隔", value: interval.value, unit: interval.unit, tint: Theme.pink)
+            StatTile(icon: .symbol("calendar"), title: "近 7 天", value: "\(stats.last7DaysCount)", unit: "次", tint: Theme.butter)
+            StatTile(icon: .symbol("moon.stars.fill"), title: "近 30 天", value: "\(stats.last30DaysCount)", unit: "次", tint: Theme.lavender)
+            StatTile(icon: .mascot, title: "累计记录", value: "\(stats.totalCount)", unit: "次", tint: Theme.peach)
         }
     }
 }
 
 struct StatTile: View {
-    let icon: String
+    let icon: IconBadge.Icon
     let title: String
     let value: String
     let unit: String
@@ -253,8 +259,8 @@ struct StatTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Text(icon)
+            HStack(spacing: 8) {
+                IconBadge(icon: icon, tint: .white, size: 26)
                 Text(title)
                     .font(.rounded(14, weight: .semibold))
                     .foregroundStyle(Theme.inkSoft)

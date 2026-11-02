@@ -78,13 +78,14 @@ enum PoopMood: Equatable {
         }
     }
 
-    var emoji: String {
+    /// SF Symbol shown next to the mood title.
+    var symbol: String {
         switch self {
-        case .noData: "👋"
-        case .today: "✨"
-        case .yesterday: "🙂"
-        case .aWhile: "🥦"
-        case .tooLong: "💧"
+        case .noData: "hand.wave.fill"
+        case .today: "sparkles"
+        case .yesterday: "face.smiling"
+        case .aWhile: "leaf.fill"
+        case .tooLong: "drop.fill"
         }
     }
 

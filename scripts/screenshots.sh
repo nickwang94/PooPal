@@ -21,7 +21,7 @@ xcodebuild -project "$ROOT/PooPal.xcodeproj" -scheme PooPal -configuration Debug
 
 xcrun simctl boot "$UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$UDID" -b
-open -a Simulator --args -CurrentDeviceUDID "$UDID" || true
+open -a Simulator --args -CurrentDeviceUDID "$UDID" 2>/dev/null || true
 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 || true
 
 APP=$DERIVED/Build/Products/Debug-iphonesimulator/PooPal.app
@@ -38,6 +38,4 @@ shot() {
 
 shot 01-home-demo -demoData
 shot 02-history-calendar -demoData -startTab history
-xcrun simctl uninstall "$UDID" "$BUNDLE_ID"
-xcrun simctl install "$UDID" "$APP"
-shot 03-home-empty
+shot 03-home-empty -emptyStore

@@ -11,12 +11,20 @@ struct PooPalApp: App {
         .modelContainer(PooPalApp.makeContainer())
     }
 
-    /// `-demoData` seeds sample entries into an in-memory store (used for screenshots).
+    /// `-demoData` seeds sample entries into an in-memory store; `-emptyStore` starts from an
+    /// empty in-memory store. Both leave the real on-device data untouched (used for screenshots).
     static func makeContainer() -> ModelContainer {
-        if ProcessInfo.processInfo.arguments.contains("-demoData") {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("-demoData") {
             return PreviewData.container
         }
         do {
+            if arguments.contains("-emptyStore") {
+                return try ModelContainer(
+                    for: PoopEntry.self,
+                    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+                )
+            }
             return try ModelContainer(for: PoopEntry.self)
         } catch {
             fatalError("无法创建数据存储：\(error)")
