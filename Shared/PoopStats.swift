@@ -14,6 +14,8 @@ struct PoopStats: Equatable {
     let trackedDays: Int
     /// Entries per day across the tracked span. `nil` when there are no entries.
     let averagePerDay: Double?
+    /// Entries per day over the last 30 days (or fewer, if tracking started more recently).
+    let averagePerDayLast30: Double?
     /// Mean gap between consecutive entries, in days. `nil` with fewer than two entries.
     let averageIntervalDays: Double?
 
@@ -39,10 +41,12 @@ struct PoopStats: Equatable {
             let span = (calendar.dateComponents([.day], from: firstDay, to: today).day ?? 0) + 1
             trackedDays = max(span, 1)
             averagePerDay = Double(sorted.count) / Double(trackedDays)
+            averagePerDayLast30 = Double(last30DaysCount) / Double(min(trackedDays, 30))
         } else {
             daysSinceLast = nil
             trackedDays = 0
             averagePerDay = nil
+            averagePerDayLast30 = nil
         }
 
         if sorted.count >= 2, let first = sorted.first, let last = sorted.last {
@@ -58,6 +62,78 @@ struct PoopStats: Equatable {
         dates.reduce(into: [:]) { result, date in
             result[calendar.startOfDay(for: date), default: 0] += 1
         }
+    }
+
+    /// Bristol type counts for entries in the last `days` calendar days (including today).
+    static func bristolDistribution(
+        _ entries: [(date: Date, type: Int?)],
+        days: Int = 30,
+        now: Date = .now,
+        calendar: Calendar = .current
+    ) -> [BristolType: Int] {
+        guard let start = calendar.date(byAdding: .day, value: -(days - 1), to: calendar.startOfDay(for: now)) else { return [:] }
+        return entries.reduce(into: [:]) { result, entry in
+            guard entry.date >= start, entry.date <= now,
+                  let type = entry.type.flatMap(BristolType.init(rawValue:)) else { return }
+            result[type, default: 0] += 1
+        }
+    }
+
+    /// Most frequent Bristol type in the window; ties go to the type closest to the ideal (4).
+    static func mostCommonBristol(
+        _ entries: [(date: Date, type: Int?)],
+        days: Int = 30,
+        now: Date = .now,
+        calendar: Calendar = .current
+    ) -> BristolType? {
+        bristolDistribution(entries, days: days, now: now, calendar: calendar)
+            .max { a, b in
+                a.value != b.value ? a.value < b.value : abs(a.key.rawValue - 4) > abs(b.key.rawValue - 4)
+            }?
+            .key
+    }
+}
+
+/// Entry counts grouped into calendar weeks or months, for the trend chart.
+struct TrendBucket: Equatable, Identifiable {
+    let start: Date
+    let count: Int
+    var id: Date { start }
+}
+
+enum TrendPeriod: String, CaseIterable, Identifiable {
+    case week = "按周"
+    case month = "按月"
+    var id: Self { self }
+
+    var component: Calendar.Component {
+        switch self {
+        case .week: .weekOfYear
+        case .month: .month
+        }
+    }
+}
+
+enum Trends {
+    /// The last `count` periods ending with the current one, oldest first, including empty periods.
+    static func buckets(
+        _ dates: [Date],
+        period: TrendPeriod,
+        count: Int = 12,
+        now: Date = .now,
+        calendar: Calendar = .current
+    ) -> [TrendBucket] {
+        guard let current = calendar.dateInterval(of: period.component, for: now) else { return [] }
+        let starts: [Date] = (0..<count).reversed().compactMap {
+            calendar.date(byAdding: period.component, value: -$0, to: current.start)
+        }
+        var counts: [Date: Int] = [:]
+        for date in dates where date <= now {
+            if let interval = calendar.dateInterval(of: period.component, for: date) {
+                counts[interval.start, default: 0] += 1
+            }
+        }
+        return starts.map { TrendBucket(start: $0, count: counts[$0] ?? 0) }
     }
 }
 
@@ -78,7 +154,7 @@ enum PoopMood: Equatable {
         }
     }
 
-    /// SF Symbol shown next to the mood title.
+    /// SF Symbol shown next to the mood title and in the widget.
     var symbol: String {
         switch self {
         case .noData: "hand.wave.fill"
@@ -118,8 +194,9 @@ enum StatsFormat {
     /// Human-friendly interval: hours when under a day, otherwise days with one decimal.
     static func interval(_ days: Double?) -> (value: String, unit: String) {
         guard let days else { return ("—", "") }
-        if days < 1 {
-            return (String(format: "%.0f", max(days * 24, 1)), "小时")
+        let hours = (days * 24).rounded()
+        if hours < 24 {
+            return (String(format: "%.0f", max(hours, 1)), "小时")
         }
         return (String(format: "%.1f", days), "天")
     }

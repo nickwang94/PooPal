@@ -15,7 +15,7 @@ mkdir -p "$OUT"
 
 "$TC/swiftc" -sdk "$SDK" -module-name PooPal -enable-testing -parse-as-library \
   -emit-library -emit-module -static -o "$OUT/libPooPal.a" -emit-module-path "$OUT/PooPal.swiftmodule" \
-  "$ROOT/PooPal/Logic/PoopStats.swift"
+  "$ROOT/Shared/PoopStats.swift" "$ROOT/Shared/BristolType.swift" "$ROOT/Shared/Theme.swift"
 
 cat > "$OUT/main.swift" <<'EOF'
 import XCTest

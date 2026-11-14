@@ -10,7 +10,7 @@ mkdir -p "$OUT"
 
 "$TC/swiftc" -sdk "$SDK" -parse-as-library -o "$OUT/render-app-icon" \
   "$ROOT/scripts/render-app-icon.swift" \
-  "$ROOT/PooPal/Theme/Theme.swift" \
-  "$ROOT/PooPal/Views/PoopMascot.swift"
+  "$ROOT/Shared/Theme.swift" \
+  "$ROOT/Shared/PoopMascot.swift"
 
 "$OUT/render-app-icon" "$ROOT/PooPal/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
