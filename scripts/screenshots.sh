@@ -31,11 +31,16 @@ shot() {
   local name=$1; shift
   xcrun simctl terminate "$UDID" "$BUNDLE_ID" 2>/dev/null || true
   xcrun simctl launch "$UDID" "$BUNDLE_ID" "$@" >/dev/null
-  sleep 3
+  sleep 6
   xcrun simctl io "$UDID" screenshot "$OUT/$name.png" >/dev/null
   echo "saved $OUT/$name.png"
 }
 
-shot 01-home-demo -demoData
-shot 02-history-calendar -demoData -startTab history
-shot 03-home-empty -emptyStore
+shot v2-home -demoData
+shot v2-home-stats -demoData -homeScroll stats
+shot v2-history-calendar -demoData -startTab history
+shot v2-history-list -demoData -startTab history -historyMode list
+shot v2-trends -demoData -startTab history -historyMode trends
+shot v2-add-entry -demoData -showAddEntry YES
+shot v2-settings -demoData -showSettings YES
+shot v2-empty -emptyStore

@@ -1,4 +1,4 @@
-# PooPal 💩
+# PooPal
 
 记录便便频率的 iPhone 小应用（SwiftUI + SwiftData，iOS 17+，无需登录，数据只存在本机）。
 
@@ -31,7 +31,17 @@ scripts/render-app-icon.sh
 
 ## 结构
 
-- `PooPal/Logic/PoopStats.swift`：频率统计（纯函数，可注入 `now` 和日历）
-- `PooPal/Models/PoopEntry.swift`：SwiftData 模型
-- `PooPal/Views/`：首页、记录（日历 / 列表）、补记、吉祥物
-- `PooPalTests/`：统计逻辑单元测试
+- `Shared/`：App 和小组件共用的代码（SwiftData 模型、App Group 数据库位置与 v1 数据迁移、统计、布里斯托分型、提醒、一键记录的 AppIntent、吉祥物）
+- `PooPal/`：App 界面（首页、记录日历 / 列表 / 趋势、编辑记录、设置与备份）
+- `PooPalWidget/`：桌面小组件（iOS 17 可交互小组件，一键记录）
+- `Config/`：权限文件（App Group `group.com.nickwang.PooPal`）和小组件 Info.plist
+- `PooPalTests/`：单元测试
+
+## 签名
+
+使用免费的 Personal Team（`S9PC78X8QG`）自动签名。免费团队的描述文件 7 天过期，过期后重新运行一次安装即可，数据不会丢。
+首次为真机构建需要 `-allowProvisioningUpdates`，让 Xcode 自动为 App 和小组件申请 App Group。
+
+## 截图专用启动参数
+
+`-demoData`（内存示例数据）、`-emptyStore`（内存空数据）、`-startTab history`、`-historyMode list|trends`、`-homeScroll stats`、`-showAddEntry YES`、`-showSettings YES`。
