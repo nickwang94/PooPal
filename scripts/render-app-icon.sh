@@ -1,4 +1,5 @@
 #!/bin/zsh
+# Renders AppIcon.png / AppIcon-Dark.png / AppIcon-Tinted.png from the in-app Logotype.
 set -euo pipefail
 
 ROOT=${0:A:h:h}
@@ -11,6 +12,6 @@ mkdir -p "$OUT"
 "$TC/swiftc" -sdk "$SDK" -parse-as-library -o "$OUT/render-app-icon" \
   "$ROOT/scripts/render-app-icon.swift" \
   "$ROOT/Shared/Theme.swift" \
-  "$ROOT/Shared/PoopMascot.swift"
+  "$ROOT/Shared/Logotype.swift"
 
-"$OUT/render-app-icon" "$ROOT/PooPal/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+"$OUT/render-app-icon" "$ROOT/PooPal/Assets.xcassets/AppIcon.appiconset"
