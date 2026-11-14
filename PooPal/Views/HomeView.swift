@@ -5,33 +5,52 @@ struct HomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \PoopEntry.timestamp, order: .reverse) private var entries: [PoopEntry]
 
-    @State private var showingAddSheet = false
+    @State private var showingAddSheet = UserDefaults.standard.bool(forKey: "showAddEntry")
+    @State private var showingSettings = UserDefaults.standard.bool(forKey: "showSettings")
+    @State private var editing: PoopEntry?
     @State private var lastLogged: PoopEntry?
     @State private var logCount = 0
 
     private var stats: PoopStats { PoopStats(dates: entries.map(\.timestamp)) }
     private var mood: PoopMood { PoopMood(daysSinceLast: stats.daysSinceLast) }
+    private var commonType: BristolType? {
+        PoopStats.mostCommonBristol(entries.map { ($0.timestamp, $0.bristolType) })
+    }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    header
-                    MoodCard(mood: mood)
-                    BigPoopButton(bounceTrigger: logCount, action: logNow)
-                    addPastButton
-                    StatsGrid(stats: stats)
-                    recentSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 20) {
+                        header
+                        MoodCard(mood: mood)
+                        BigPoopButton(bounceTrigger: logCount, action: logNow)
+                        addPastButton
+                        StatsGrid(stats: stats, commonType: commonType)
+                            .id("stats")
+                        recentSection
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 100)
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 100)
+                .onAppear {
+                    // `-homeScroll stats` (screenshots only).
+                    if UserDefaults.standard.string(forKey: "homeScroll") == "stats" {
+                        proxy.scrollTo("stats", anchor: .top)
+                    }
+                }
             }
             .background(Theme.background.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
             .overlay(alignment: .bottom) { toast }
             .sheet(isPresented: $showingAddSheet) {
-                AddEntrySheet()
-                    .presentationDetents([.large])
+                EntryEditorSheet()
+            }
+            .sheet(item: $editing) { entry in
+                EntryEditorSheet(entry: entry)
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
             }
             .sensoryFeedback(.success, trigger: logCount)
         }
@@ -54,6 +73,13 @@ struct HomeView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(Capsule().fill(Theme.butter))
+            Button {
+                showingSettings = true
+            } label: {
+                IconBadge(icon: .symbol("gearshape.fill"), tint: Theme.lavender.opacity(0.7), size: 34)
+            }
+            .buttonStyle(SquishButtonStyle())
+            .accessibilityLabel("设置")
         }
         .padding(.top, 12)
     }
@@ -81,21 +107,38 @@ struct HomeView: View {
                     .foregroundStyle(Theme.ink)
                 VStack(spacing: 0) {
                     ForEach(entries.prefix(3)) { entry in
-                        HStack(spacing: 10) {
-                            IconBadge(icon: .mascot, tint: Theme.cream, size: 30)
-                            Text(DateText.short(entry.timestamp))
-                                .font(.rounded(16, weight: .medium))
-                                .foregroundStyle(Theme.ink)
-                            Spacer()
+                        Button {
+                            editing = entry
+                        } label: {
+                            HStack(spacing: 10) {
+                                EntryBadge(type: entry.bristol, size: 34)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(DateText.short(entry.timestamp))
+                                        .font(.rounded(16, weight: .medium))
+                                        .foregroundStyle(Theme.ink)
+                                    if let detail = entry.summaryLine {
+                                        Text(detail)
+                                            .font(.rounded(13))
+                                            .foregroundStyle(Theme.inkSoft)
+                                            .lineLimit(1)
+                                    }
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(Theme.inkSoft.opacity(0.5))
+                            }
+                            .padding(.vertical, 8)
+                            .contentShape(Rectangle())
                         }
-                        .padding(.vertical, 8)
+                        .buttonStyle(.plain)
                         if entry.id != entries.prefix(3).last?.id {
                             Divider()
                         }
                     }
                 }
                 .card()
-                Text("在「记录」页可以查看全部，左滑删除记错的条目")
+                Text("点一条可以补充形态和备注；在「记录」页左滑可删除")
                     .font(.rounded(12))
                     .foregroundStyle(Theme.inkSoft)
             }
@@ -112,6 +155,12 @@ struct HomeView: View {
                     .font(.rounded(16, weight: .semibold))
                     .foregroundStyle(Theme.ink)
                 Spacer()
+                Button("补充") {
+                    editing = lastLogged
+                    withAnimation(.easeOut) { self.lastLogged = nil }
+                }
+                .font(.rounded(16, weight: .bold))
+                .foregroundStyle(Theme.ink)
                 Button("撤销") { undo(lastLogged) }
                     .font(.rounded(16, weight: .bold))
                     .foregroundStyle(Theme.poop)
@@ -129,12 +178,12 @@ struct HomeView: View {
     private func logNow() {
         let entry = PoopEntry(timestamp: .now)
         context.insert(entry)
-        try? context.save()
+        DataActions.didChange(context, requestNotificationPermission: true)
         logCount += 1
         withAnimation(.spring) { lastLogged = entry }
         let current = logCount
         Task {
-            try? await Task.sleep(for: .seconds(4))
+            try? await Task.sleep(for: .seconds(6))
             if current == logCount {
                 withAnimation(.easeOut) { lastLogged = nil }
             }
@@ -143,7 +192,7 @@ struct HomeView: View {
 
     private func undo(_ entry: PoopEntry) {
         context.delete(entry)
-        try? context.save()
+        DataActions.didChange(context)
         withAnimation(.easeOut) { lastLogged = nil }
     }
 }
@@ -235,17 +284,29 @@ struct SquishButtonStyle: ButtonStyle {
 
 struct StatsGrid: View {
     let stats: PoopStats
+    let commonType: BristolType?
 
     var body: some View {
         let since = StatsFormat.daysSince(stats.daysSinceLast)
         let interval = StatsFormat.interval(stats.averageIntervalDays)
         LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
             StatTile(icon: .symbol("hourglass"), title: "距上次", value: since.value, unit: since.unit, tint: Theme.sky)
-            StatTile(icon: .symbol("chart.line.uptrend.xyaxis"), title: "平均每天", value: StatsFormat.perDay(stats.averagePerDay), unit: stats.averagePerDay == nil ? "" : "次", tint: Theme.mint)
             StatTile(icon: .symbol("arrow.triangle.2.circlepath"), title: "平均间隔", value: interval.value, unit: interval.unit, tint: Theme.pink)
+            StatTile(
+                icon: .symbol("chart.line.uptrend.xyaxis"), title: "日均 · 全部",
+                value: StatsFormat.perDay(stats.averagePerDay), unit: stats.averagePerDay == nil ? "" : "次", tint: Theme.mint
+            )
+            StatTile(
+                icon: .symbol("chart.bar.fill"), title: "日均 · 近30天",
+                value: StatsFormat.perDay(stats.averagePerDayLast30), unit: stats.averagePerDayLast30 == nil ? "" : "次", tint: Theme.sky
+            )
             StatTile(icon: .symbol("calendar"), title: "近 7 天", value: "\(stats.last7DaysCount)", unit: "次", tint: Theme.butter)
             StatTile(icon: .symbol("moon.stars.fill"), title: "近 30 天", value: "\(stats.last30DaysCount)", unit: "次", tint: Theme.lavender)
             StatTile(icon: .mascot, title: "累计记录", value: "\(stats.totalCount)", unit: "次", tint: Theme.peach)
+            StatTile(
+                icon: .symbol("sparkles"), title: "近30天常见",
+                value: commonType.map { "\($0.rawValue) 型" } ?? "—", unit: commonType?.name ?? "", tint: Theme.mint
+            )
         }
     }
 }

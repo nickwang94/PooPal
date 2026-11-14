@@ -5,14 +5,23 @@ struct HistoryView: View {
     enum Mode: String, CaseIterable, Identifiable {
         case calendar = "日历"
         case list = "列表"
+        case trends = "趋势"
         var id: Self { self }
     }
 
     @Environment(\.modelContext) private var context
     @Query(sort: \PoopEntry.timestamp, order: .reverse) private var entries: [PoopEntry]
 
-    @State private var mode: Mode = .calendar
+    /// `-historyMode list|trends` picks the initial mode (used for screenshots).
+    @State private var mode: Mode = {
+        switch UserDefaults.standard.string(forKey: "historyMode") {
+        case "list": .list
+        case "trends": .trends
+        default: .calendar
+        }
+    }()
     @State private var showingAddSheet = false
+    @State private var editing: PoopEntry?
 
     var body: some View {
         NavigationStack {
@@ -22,9 +31,11 @@ struct HistoryView: View {
                 } else {
                     switch mode {
                     case .calendar:
-                        CalendarPage(entries: entries, onDelete: delete)
+                        CalendarPage(entries: entries, onEdit: { editing = $0 }, onDelete: delete)
                     case .list:
                         listPage
+                    case .trends:
+                        TrendsView(entries: entries)
                     }
                 }
             }
@@ -36,7 +47,7 @@ struct HistoryView: View {
                         ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 160)
+                    .frame(width: 210)
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -48,7 +59,10 @@ struct HistoryView: View {
                 }
             }
             .sheet(isPresented: $showingAddSheet) {
-                AddEntrySheet()
+                EntryEditorSheet()
+            }
+            .sheet(item: $editing) { entry in
+                EntryEditorSheet(entry: entry)
             }
         }
     }
@@ -64,7 +78,7 @@ struct HistoryView: View {
             ForEach(groupedByDay, id: \.day) { group in
                 Section {
                     ForEach(group.items) { entry in
-                        EntryRow(entry: entry)
+                        EntryRow(entry: entry) { editing = entry }
                     }
                     .onDelete { offsets in
                         offsets.map { group.items[$0] }.forEach(delete)
@@ -98,31 +112,56 @@ struct HistoryView: View {
     private func delete(_ entry: PoopEntry) {
         withAnimation {
             context.delete(entry)
-            try? context.save()
+            DataActions.didChange(context)
         }
     }
 }
 
 struct EntryRow: View {
     let entry: PoopEntry
+    var onTap: () -> Void = {}
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text("💩")
-                .font(.system(size: 22))
-                .frame(width: 40, height: 40)
-                .background(Circle().fill(Theme.cream))
-            Text(DateText.time(entry.timestamp))
-                .font(.rounded(18, weight: .semibold))
-                .foregroundStyle(Theme.ink)
-            Spacer()
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                EntryBadge(type: entry.bristol, size: 42)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 8) {
+                        Text(DateText.time(entry.timestamp))
+                            .font(.rounded(18, weight: .semibold))
+                            .foregroundStyle(Theme.ink)
+                        if let type = entry.bristol {
+                            Text("\(type.rawValue) 型 \(type.name)")
+                                .font(.rounded(12, weight: .bold))
+                                .foregroundStyle(Theme.ink)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill(type.tint.opacity(0.6)))
+                        }
+                    }
+                    if let note = entry.trimmedNote {
+                        Text(note)
+                            .font(.rounded(14))
+                            .foregroundStyle(Theme.inkSoft)
+                            .lineLimit(2)
+                    } else if entry.bristol == nil {
+                        Text("点一下补充形态和备注")
+                            .font(.rounded(13))
+                            .foregroundStyle(Theme.inkSoft.opacity(0.7))
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, 2)
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, 2)
+        .buttonStyle(.plain)
     }
 }
 
 struct CalendarPage: View {
     let entries: [PoopEntry]
+    let onEdit: (PoopEntry) -> Void
     let onDelete: (PoopEntry) -> Void
 
     @State private var month: Date = Calendar.current.startOfMonth(for: .now)
@@ -153,7 +192,7 @@ struct CalendarPage: View {
                         .foregroundStyle(Theme.inkSoft)
                 } else {
                     ForEach(selectedEntries) { entry in
-                        EntryRow(entry: entry)
+                        EntryRow(entry: entry) { onEdit(entry) }
                             .swipeActions {
                                 Button("删除", role: .destructive) { onDelete(entry) }
                             }
@@ -165,7 +204,7 @@ struct CalendarPage: View {
                     .foregroundStyle(Theme.inkSoft)
             } footer: {
                 if !selectedEntries.isEmpty {
-                    Text("记错了？向左滑动即可删除")
+                    Text("点一条可以编辑；记错了就向左滑动删除")
                         .font(.rounded(12))
                 }
             }
@@ -235,7 +274,7 @@ struct MonthGrid: View {
                             if day <= .now { selectedDay = day }
                         }
                     } else {
-                        Color.clear.frame(height: 44)
+                        Color.clear.frame(height: 48)
                     }
                 }
             }
@@ -257,24 +296,24 @@ struct DayCell: View {
     let isFuture: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 1) {
             Text("\(Calendar.current.component(.day, from: day))")
                 .font(.rounded(13, weight: isToday ? .heavy : .medium))
                 .foregroundStyle(isFuture ? Theme.inkSoft.opacity(0.4) : Theme.ink)
-            Group {
-                if count == 0 {
-                    Text(" ")
-                } else if count == 1 {
-                    Text("💩")
-                } else {
-                    Text("💩\(count)")
+            HStack(spacing: 1) {
+                if count > 0 {
+                    PoopMascot(expression: .happy)
+                        .frame(width: 16, height: 16)
+                    if count > 1 {
+                        Text("×\(count)")
+                            .font(.rounded(10, weight: .bold))
+                            .foregroundStyle(Theme.poop)
+                    }
                 }
             }
-            .font(.system(size: 12))
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
+            .frame(height: 16)
         }
-        .frame(maxWidth: .infinity, minHeight: 44)
+        .frame(maxWidth: .infinity, minHeight: 48)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(isSelected ? Theme.peach : (count > 0 ? Theme.cream : Color.clear))

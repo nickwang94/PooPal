@@ -117,6 +117,9 @@ final class PoopStatsTests: XCTestCase {
         XCTAssertEqual(StatsFormat.interval(1.5).value, "1.5")
         XCTAssertEqual(StatsFormat.interval(1.5).unit, "天")
         XCTAssertEqual(StatsFormat.interval(0.5).value, "12")
+        // Just under a day reads as "1.0 天", not "24 小时".
+        XCTAssertEqual(StatsFormat.interval(0.99).value, "1.0")
+        XCTAssertEqual(StatsFormat.interval(0.99).unit, "天")
         XCTAssertEqual(StatsFormat.daysSince(0).value, "今天")
         XCTAssertEqual(StatsFormat.daysSince(3).value, "3")
     }
