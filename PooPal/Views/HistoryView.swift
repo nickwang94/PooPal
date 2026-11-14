@@ -39,31 +39,30 @@ struct HistoryView: View {
                     }
                 }
             }
-            .background(Theme.background.ignoresSafeArea())
-            .navigationTitle("便便记录")
+            .background(Theme.ground.ignoresSafeArea())
+            .navigationTitle("记录")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Picker("显示方式", selection: $mode) {
-                        ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
+                if !entries.isEmpty {
+                    ToolbarItem(placement: .principal) {
+                        Picker("显示方式", selection: $mode) {
+                            ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 240)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 210)
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         showingAddSheet = true
                     } label: {
-                        Image(systemName: "plus.circle.fill")
+                        Image(systemName: "plus")
                     }
                     .accessibilityLabel("补记一次")
                 }
             }
-            .sheet(isPresented: $showingAddSheet) {
-                EntryEditorSheet()
-            }
-            .sheet(item: $editing) { entry in
-                EntryEditorSheet(entry: entry)
-            }
+            .sheet(isPresented: $showingAddSheet) { EntryEditorSheet() }
+            .sheet(item: $editing) { EntryEditorSheet(entry: $0) }
         }
     }
 
@@ -78,35 +77,29 @@ struct HistoryView: View {
             ForEach(groupedByDay, id: \.day) { group in
                 Section {
                     ForEach(group.items) { entry in
-                        EntryRow(entry: entry) { editing = entry }
+                        Button { editing = entry } label: { EntryRowContent(entry: entry) }
+                            .buttonStyle(.plain)
                     }
                     .onDelete { offsets in
                         offsets.map { group.items[$0] }.forEach(delete)
                     }
                 } header: {
                     Text("\(DateText.dayTitle(group.day)) · \(group.items.count) 次")
-                        .font(.rounded(14, weight: .bold))
-                        .foregroundStyle(Theme.inkSoft)
                 }
-                .listRowBackground(Theme.card)
+                .listRowBackground(Theme.surface)
             }
         }
+        .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
     }
 
     private var emptyState: some View {
-        VStack(spacing: 14) {
-            PoopMascot(expression: .calm)
-                .frame(width: 120, height: 120)
-            Text("还没有任何记录")
-                .font(.rounded(20, weight: .bold))
-                .foregroundStyle(Theme.ink)
-            Text("回到首页点一下大按钮，\n或者右上角补记一次吧～")
-                .font(.rounded(15))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Theme.inkSoft)
+        ContentUnavailableView {
+            Label("还没有记录", systemImage: "square.grid.3x3")
+        } description: {
+            Text("在首页点「记一次」，或右上角补记过去的一次。")
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .foregroundStyle(Theme.ink)
     }
 
     private func delete(_ entry: PoopEntry) {
@@ -117,45 +110,45 @@ struct HistoryView: View {
     }
 }
 
-struct EntryRow: View {
+/// One entry: type tile, time, type label, note.
+struct EntryRowContent: View {
     let entry: PoopEntry
-    var onTap: () -> Void = {}
+    /// Show "今天 08:30" instead of just the time.
+    var dayStyle = false
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 12) {
-                EntryBadge(type: entry.bristol, size: 42)
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text(DateText.time(entry.timestamp))
-                            .font(.rounded(18, weight: .semibold))
-                            .foregroundStyle(Theme.ink)
-                        if let type = entry.bristol {
-                            Text("\(type.rawValue) 型 \(type.name)")
-                                .font(.rounded(12, weight: .bold))
-                                .foregroundStyle(Theme.ink)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Capsule().fill(type.tint.opacity(0.6)))
-                        }
-                    }
-                    if let note = entry.trimmedNote {
-                        Text(note)
-                            .font(.rounded(14))
-                            .foregroundStyle(Theme.inkSoft)
-                            .lineLimit(2)
-                    } else if entry.bristol == nil {
-                        Text("点一下补充形态和备注")
-                            .font(.rounded(13))
-                            .foregroundStyle(Theme.inkSoft.opacity(0.7))
+        HStack(spacing: 14) {
+            EntryBadge(type: entry.bristol, size: 36)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text(dayStyle ? DateText.short(entry.timestamp) : DateText.time(entry.timestamp))
+                        .font(.body.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(Theme.ink)
+                    if let type = entry.bristol {
+                        Text("\(type.rawValue) 型 · \(type.name)")
+                            .font(.subheadline)
+                            .foregroundStyle(type.tint)
                     }
                 }
-                Spacer(minLength: 0)
+                if let note = entry.trimmedNote {
+                    Text(note)
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.inkSoft)
+                        .lineLimit(2)
+                } else if entry.bristol == nil {
+                    Text("点一下补充形态和备注")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.inkSoft)
+                }
             }
-            .padding(.vertical, 2)
-            .contentShape(Rectangle())
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(Theme.inkSoft.opacity(0.6))
         }
-        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("编辑这条记录")
     }
 }
 
@@ -180,19 +173,20 @@ struct CalendarPage: View {
     var body: some View {
         List {
             Section {
-                MonthGrid(month: $month, selectedDay: $selectedDay, counts: counts)
-                    .listRowInsets(EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12))
+                MonthMosaic(month: $month, selectedDay: $selectedDay, counts: counts)
+                    .listRowInsets(EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14))
             }
-            .listRowBackground(Theme.card)
+            .listRowBackground(Theme.surface)
+            .listSectionSpacing(.compact)
 
             Section {
                 if selectedEntries.isEmpty {
-                    Text("这天没有便便记录")
-                        .font(.rounded(15))
+                    Text("这天没有记录")
                         .foregroundStyle(Theme.inkSoft)
                 } else {
                     ForEach(selectedEntries) { entry in
-                        EntryRow(entry: entry) { onEdit(entry) }
+                        Button { onEdit(entry) } label: { EntryRowContent(entry: entry) }
+                            .buttonStyle(.plain)
                             .swipeActions {
                                 Button("删除", role: .destructive) { onDelete(entry) }
                             }
@@ -200,70 +194,79 @@ struct CalendarPage: View {
                 }
             } header: {
                 Text("\(DateText.dayTitle(selectedDay)) · \(selectedEntries.count) 次")
-                    .font(.rounded(14, weight: .bold))
-                    .foregroundStyle(Theme.inkSoft)
             } footer: {
                 if !selectedEntries.isEmpty {
-                    Text("点一条可以编辑；记错了就向左滑动删除")
-                        .font(.rounded(12))
+                    Text("点一条可以编辑，向左滑动可以删除。")
                 }
             }
-            .listRowBackground(Theme.card)
+            .listRowBackground(Theme.surface)
         }
+        .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
+        .contentMargins(.top, 4, for: .scrollContent)
     }
 }
 
-struct MonthGrid: View {
+/// The month as a mosaic of tiles; shade deepens with the day's count.
+struct MonthMosaic: View {
     @Binding var month: Date
     @Binding var selectedDay: Date
     let counts: [Date: Int]
 
     private let calendar = Calendar.current
-    private let weekdaySymbols = ["日", "一", "二", "三", "四", "五", "六"]
+
+    private var weekdaySymbols: [String] {
+        let names = ["日", "一", "二", "三", "四", "五", "六"]
+        return (0..<7).map { names[(calendar.firstWeekday - 1 + $0) % 7] }
+    }
 
     private var days: [Date?] {
         guard let range = calendar.range(of: .day, in: .month, for: month) else { return [] }
-        let firstWeekday = calendar.component(.weekday, from: month)
-        let leading = Array(repeating: Date?.none, count: firstWeekday - 1)
-        let monthDays: [Date?] = range.compactMap { day in
-            calendar.date(byAdding: .day, value: day - 1, to: month)
-        }
-        return leading + monthDays
+        let weekday = calendar.component(.weekday, from: month)
+        let leading = (weekday - calendar.firstWeekday + 7) % 7
+        let monthDays: [Date?] = range.compactMap { calendar.date(byAdding: .day, value: $0 - 1, to: month) }
+        return Array(repeating: nil, count: leading) + monthDays
     }
 
-    private var canGoForward: Bool {
-        month < calendar.startOfMonth(for: .now)
+    private var canGoForward: Bool { month < calendar.startOfMonth(for: .now) }
+
+    private var monthTotal: Int {
+        days.compactMap { $0 }.reduce(0) { $0 + (counts[$1] ?? 0) }
     }
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             HStack {
-                Button { shiftMonth(-1) } label: { Image(systemName: "chevron.left.circle.fill") }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(DateText.month(month))
+                        .font(.headline)
+                        .foregroundStyle(Theme.ink)
+                    Text("共 \(monthTotal) 次")
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(Theme.inkSoft)
+                }
+                Spacer()
+                Button { shiftMonth(-1) } label: { Image(systemName: "chevron.left") }
                     .accessibilityLabel("上个月")
-                Spacer()
-                Text(DateText.month(month))
-                    .font(.rounded(18, weight: .bold))
-                    .foregroundStyle(Theme.ink)
-                Spacer()
-                Button { shiftMonth(1) } label: { Image(systemName: "chevron.right.circle.fill") }
+                    .frame(width: 44, height: 44)
+                Button { shiftMonth(1) } label: { Image(systemName: "chevron.right") }
                     .disabled(!canGoForward)
                     .accessibilityLabel("下个月")
+                    .frame(width: 44, height: 44)
             }
-            .font(.system(size: 24))
-            .foregroundStyle(Theme.poop)
-            .buttonStyle(.plain)
+            .font(.body.weight(.semibold))
+            .buttonStyle(.borderless)
 
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(weekdaySymbols, id: \.self) { symbol in
                     Text(symbol)
-                        .font(.rounded(12, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(Theme.inkSoft)
                 }
                 ForEach(Array(days.enumerated()), id: \.offset) { _, day in
                     if let day {
-                        DayCell(
+                        DayTile(
                             day: day,
                             count: counts[day] ?? 0,
                             isSelected: calendar.isDate(day, inSameDayAs: selectedDay),
@@ -274,10 +277,21 @@ struct MonthGrid: View {
                             if day <= .now { selectedDay = day }
                         }
                     } else {
-                        Color.clear.frame(height: 48)
+                        Color.clear.aspectRatio(1, contentMode: .fit)
                     }
                 }
             }
+            .sensoryFeedback(.selection, trigger: selectedDay)
+
+            HStack(spacing: 6) {
+                Text("少").font(.caption2).foregroundStyle(Theme.inkSoft)
+                ForEach(0..<4) { count in
+                    GlazeTile(color: Theme.tile(for: count), radius: 3).frame(width: 12, height: 12)
+                }
+                Text("多").font(.caption2).foregroundStyle(Theme.inkSoft)
+                Spacer()
+            }
+            .accessibilityHidden(true)
         }
     }
 
@@ -288,7 +302,7 @@ struct MonthGrid: View {
     }
 }
 
-struct DayCell: View {
+struct DayTile: View {
     let day: Date
     let count: Int
     let isSelected: Bool
@@ -296,35 +310,31 @@ struct DayCell: View {
     let isFuture: Bool
 
     var body: some View {
-        VStack(spacing: 1) {
+        let filled = count > 0
+        ZStack(alignment: .topLeading) {
+            GlazeTile(color: isFuture ? Theme.surfaceSunk.opacity(0.45) : Theme.tile(for: count), radius: 8)
             Text("\(Calendar.current.component(.day, from: day))")
-                .font(.rounded(13, weight: isToday ? .heavy : .medium))
-                .foregroundStyle(isFuture ? Theme.inkSoft.opacity(0.4) : Theme.ink)
-            HStack(spacing: 1) {
-                if count > 0 {
-                    PoopMascot(expression: .happy)
-                        .frame(width: 16, height: 16)
-                    if count > 1 {
-                        Text("×\(count)")
-                            .font(.rounded(10, weight: .bold))
-                            .foregroundStyle(Theme.poop)
-                    }
-                }
+                .font(.caption2.weight(isToday ? .heavy : .medium).monospacedDigit())
+                .foregroundStyle(isFuture ? Theme.inkSoft.opacity(0.5) : Theme.tileInk(for: count))
+                .padding(5)
+            if count > 1 {
+                Text("×\(count)")
+                    .font(.caption2.weight(.bold).monospacedDigit())
+                    .foregroundStyle(Theme.tileInk(for: count))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .padding(4)
             }
-            .frame(height: 16)
         }
-        .frame(maxWidth: .infinity, minHeight: 48)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Theme.peach : (count > 0 ? Theme.cream : Color.clear))
-        )
+        .aspectRatio(1, contentMode: .fit)
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isToday ? Theme.poop : Color.clear, lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(isSelected ? Theme.glaze : (isToday ? Theme.glaze.opacity(0.45) : .clear), lineWidth: isSelected ? 2 : 1.5)
+                .padding(-2.5)
         )
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(DateText.dayTitle(day))，\(count) 次")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
 

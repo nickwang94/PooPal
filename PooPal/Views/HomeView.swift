@@ -21,17 +21,28 @@ struct HomeView: View {
         NavigationStack {
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(spacing: 20) {
-                        header
-                        MoodCard(mood: mood)
-                        BigPoopButton(bounceTrigger: logCount, action: logNow)
-                        addPastButton
-                        StatsGrid(stats: stats, commonType: commonType)
+                    VStack(alignment: .leading, spacing: 28) {
+                        todayHeader
+                        VStack(spacing: 12) {
+                            LogTileButton(todayCount: stats.todayCount, action: logNow)
+                            Button {
+                                showingAddSheet = true
+                            } label: {
+                                Label("补记一次", systemImage: "clock.arrow.circlepath")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                            .tint(Theme.glaze)
+                        }
+                        WeekMosaic(dates: entries.map(\.timestamp))
+                        StatsPanel(stats: stats, commonType: commonType)
                             .id("stats")
                         recentSection
                     }
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 100)
+                    .padding(.top, 4)
+                    .padding(.bottom, 96)
                 }
                 .onAppear {
                     // `-homeScroll stats` (screenshots only).
@@ -40,109 +51,89 @@ struct HomeView: View {
                     }
                 }
             }
-            .background(Theme.background.ignoresSafeArea())
+            .background(Theme.ground.ignoresSafeArea())
+            .safeAreaInset(edge: .top, spacing: 0) {
+                Color.clear.frame(height: 0).background(Theme.ground)
+            }
             .toolbar(.hidden, for: .navigationBar)
             .overlay(alignment: .bottom) { toast }
-            .sheet(isPresented: $showingAddSheet) {
-                EntryEditorSheet()
-            }
-            .sheet(item: $editing) { entry in
-                EntryEditorSheet(entry: entry)
-            }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
-            }
+            .sheet(isPresented: $showingAddSheet) { EntryEditorSheet() }
+            .sheet(item: $editing) { EntryEditorSheet(entry: $0) }
+            .sheet(isPresented: $showingSettings) { SettingsView() }
             .sensoryFeedback(.success, trigger: logCount)
         }
     }
 
-    private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("PooPal")
-                    .font(.rounded(32, weight: .heavy))
-                    .foregroundStyle(Theme.poop)
-                Text(DateText.header(.now))
-                    .font(.rounded(15, weight: .medium))
-                    .foregroundStyle(Theme.inkSoft)
+    private var todayHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Logotype()
+                    .frame(height: 22)
+                Spacer()
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.title3)
+                        .foregroundStyle(Theme.inkSoft)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel("设置")
+                .padding(.trailing, -10)
             }
-            Spacer()
-            Text("今日 \(stats.todayCount) 次")
-                .font(.rounded(14, weight: .bold))
-                .foregroundStyle(Theme.ink)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Capsule().fill(Theme.butter))
-            Button {
-                showingSettings = true
-            } label: {
-                IconBadge(icon: .symbol("gearshape.fill"), tint: Theme.lavender.opacity(0.7), size: 34)
+            .padding(.bottom, 10)
+            Text(DateText.header(.now))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Theme.inkSoft)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("今天")
+                    .font(.largeTitle.weight(.bold))
+                Text("\(stats.todayCount)")
+                    .font(.system(.largeTitle, design: .default, weight: .bold).monospacedDigit())
+                    .foregroundStyle(Theme.glaze)
+                    .contentTransition(.numericText())
+                Text("次")
+                    .font(.largeTitle.weight(.bold))
             }
-            .buttonStyle(SquishButtonStyle())
-            .accessibilityLabel("设置")
+            .foregroundStyle(Theme.ink)
+            .accessibilityElement(children: .combine)
+            Text(statusLine)
+                .font(.body)
+                .foregroundStyle(Theme.inkSoft)
         }
-        .padding(.top, 12)
+        .padding(.top, 8)
     }
 
-    private var addPastButton: some View {
-        Button {
-            showingAddSheet = true
-        } label: {
-            Label("补记一次", systemImage: "clock.arrow.circlepath")
-                .font(.rounded(16, weight: .semibold))
-                .foregroundStyle(Theme.ink)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Capsule().fill(Theme.lavender))
-        }
-        .buttonStyle(.plain)
+    private var statusLine: String {
+        guard let elapsed = StatsFormat.elapsed(since: stats.lastDate) else { return mood.message }
+        return "距上次 \(elapsed) · \(mood.message)"
     }
 
     @ViewBuilder
     private var recentSection: some View {
         if !entries.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
-                Text("最近的记录")
-                    .font(.rounded(18, weight: .bold))
-                    .foregroundStyle(Theme.ink)
+                SectionTitle("最近")
                 VStack(spacing: 0) {
-                    ForEach(entries.prefix(3)) { entry in
+                    let recent = Array(entries.prefix(3))
+                    ForEach(recent) { entry in
                         Button {
                             editing = entry
                         } label: {
-                            HStack(spacing: 10) {
-                                EntryBadge(type: entry.bristol, size: 34)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(DateText.short(entry.timestamp))
-                                        .font(.rounded(16, weight: .medium))
-                                        .foregroundStyle(Theme.ink)
-                                    if let detail = entry.summaryLine {
-                                        Text(detail)
-                                            .font(.rounded(13))
-                                            .foregroundStyle(Theme.inkSoft)
-                                            .lineLimit(1)
-                                    }
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundStyle(Theme.inkSoft.opacity(0.5))
-                            }
-                            .padding(.vertical, 8)
-                            .contentShape(Rectangle())
+                            EntryRowContent(entry: entry, dayStyle: true)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        if entry.id != entries.prefix(3).last?.id {
-                            Divider()
+                        if entry.id != recent.last?.id {
+                            Divider().overlay(Theme.grout).padding(.leading, 66)
                         }
                     }
                 }
-                .card()
-                Text("点一条可以补充形态和备注；在「记录」页左滑可删除")
-                    .font(.rounded(12))
-                    .foregroundStyle(Theme.inkSoft)
+                .panel()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -150,27 +141,29 @@ struct HomeView: View {
     private var toast: some View {
         if let lastLogged {
             HStack(spacing: 12) {
-                IconBadge(icon: .symbol("checkmark"), tint: .white, size: 28)
-                Text("记下啦！\(DateText.time(lastLogged.timestamp))")
-                    .font(.rounded(16, weight: .semibold))
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(Theme.glaze)
+                Text("已记录 \(DateText.time(lastLogged.timestamp))")
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.ink)
-                Spacer()
-                Button("补充") {
+                Spacer(minLength: 8)
+                Button("补充详情") {
                     editing = lastLogged
                     withAnimation(.easeOut) { self.lastLogged = nil }
                 }
-                .font(.rounded(16, weight: .bold))
-                .foregroundStyle(Theme.ink)
+                .font(.subheadline.weight(.semibold))
                 Button("撤销") { undo(lastLogged) }
-                    .font(.rounded(16, weight: .bold))
-                    .foregroundStyle(Theme.poop)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.coral)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 18)
             .padding(.vertical, 14)
-            .background(Capsule().fill(Theme.mint))
-            .shadow(color: Theme.poop.opacity(0.15), radius: 10, y: 4)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 12)
+            .background(.regularMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(Theme.grout.opacity(0.6), lineWidth: 0.5))
+            .shadow(color: .black.opacity(0.12), radius: 16, y: 6)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 10)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
@@ -180,7 +173,7 @@ struct HomeView: View {
         context.insert(entry)
         DataActions.didChange(context, requestNotificationPermission: true)
         logCount += 1
-        withAnimation(.spring) { lastLogged = entry }
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { lastLogged = entry }
         let current = logCount
         Task {
             try? await Task.sleep(for: .seconds(6))
@@ -197,148 +190,205 @@ struct HomeView: View {
     }
 }
 
-struct MoodCard: View {
-    let mood: PoopMood
-
-    private var expression: PoopMascot.Expression {
-        switch mood {
-        case .today, .noData: .happy
-        case .yesterday: .calm
-        case .aWhile, .tooLong: .worried
-        }
-    }
+struct SectionTitle: View {
+    let text: String
+    init(_ text: String) { self.text = text }
 
     var body: some View {
-        HStack(spacing: 14) {
-            PoopMascot(expression: expression)
-                .frame(width: 64, height: 64)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(mood.title)
-                        .font(.rounded(19, weight: .bold))
-                        .foregroundStyle(Theme.ink)
-                    Image(systemName: mood.symbol)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.poop)
-                }
-                Text(mood.message)
-                    .font(.rounded(14))
-                    .foregroundStyle(Theme.inkSoft)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-        }
-        .card(tint: Theme.cream)
+        Text(text)
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(Theme.ink)
+            .accessibilityAddTraits(.isHeader)
     }
 }
 
-struct BigPoopButton: View {
-    var bounceTrigger: Int
-    var action: () -> Void
+/// The primary action: one large glazed tile. Today's entries appear inside it as small tiles.
+struct LogTileButton: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let todayCount: Int
+    let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
-                PoopMascot(expression: .happy)
-                    .frame(width: 110, height: 110)
-                    .phaseAnimator([false, true], trigger: bounceTrigger) { view, up in
-                        view
-                            .scaleEffect(up ? 1.15 : 1)
-                            .rotationEffect(.degrees(up ? -6 : 0))
-                    } animation: { _ in .spring(response: 0.25, dampingFraction: 0.5) }
-                Text("我便便啦！")
-                    .font(.rounded(26, weight: .heavy))
-                    .foregroundStyle(Theme.ink)
-                Text("点一下记录现在")
-                    .font(.rounded(13, weight: .medium))
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 30, weight: .semibold))
+                    Spacer(minLength: 0)
+                    Text("记一次")
+                        .font(.title.weight(.bold))
+                    Text("点一下，记录现在")
+                        .font(.subheadline)
+                        .opacity(0.9)
+                }
+                Spacer()
+                TodayTiles(count: todayCount)
+            }
+            .foregroundStyle(Theme.onGlaze)
+            .padding(22)
+            .frame(maxWidth: .infinity, minHeight: 176, alignment: .leading)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(LinearGradient(colors: [Theme.actionTop, Theme.actionBottom], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(RadialGradient(colors: [.white.opacity(colorScheme == .dark ? 0.08 : 0.16), .clear], center: .topLeading, startRadius: 0, endRadius: 260))
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .strokeBorder(.white.opacity(0.12), lineWidth: 1)
+                }
+            )
+            .shadow(color: Theme.glazeDeep.opacity(0.35), radius: 14, x: 0, y: 8)
+        }
+        .buttonStyle(PressableStyle(scale: 0.97))
+        .accessibilityLabel("记一次，记录现在")
+        .accessibilityValue("今天已记录 \(todayCount) 次")
+    }
+}
+
+/// Up to 6 small tiles in a 3-column grid; filled ones are today's entries.
+struct TodayTiles: View {
+    let count: Int
+    private let slots = 6
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 6) {
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(18), spacing: 5), count: 3), spacing: 5) {
+                ForEach(0..<slots, id: \.self) { index in
+                    let filled = index < count
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .fill(filled ? Theme.onGlaze : Theme.onGlaze.opacity(0.16))
+                        .frame(width: 18, height: 18)
+                        .scaleEffect(filled ? 1 : 0.86)
+                        .animation(.spring(response: 0.35, dampingFraction: 0.55).delay(Double(index) * 0.02), value: count)
+                }
+            }
+            .frame(width: 64)
+            Text(count > slots ? "今天 \(count) 次" : "今天")
+                .font(.caption.weight(.medium))
+                .opacity(0.9)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// This week as seven tiles; shade deepens with the day's count.
+struct WeekMosaic: View {
+    let dates: [Date]
+    private let calendar = Calendar.current
+
+    private var days: [Date] {
+        guard let week = calendar.dateInterval(of: .weekOfYear, for: .now) else { return [] }
+        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: week.start) }
+    }
+
+    var body: some View {
+        let counts = PoopStats.countsByDay(dates, calendar: calendar)
+        let weekTotal = days.reduce(0) { $0 + (counts[$1] ?? 0) }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                SectionTitle("本周")
+                Spacer()
+                Text("\(weekTotal) 次")
+                    .font(.subheadline.weight(.medium).monospacedDigit())
                     .foregroundStyle(Theme.inkSoft)
             }
-            .frame(width: 240, height: 240)
-            .background(
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Theme.butter, Theme.peach],
-                            center: .center,
-                            startRadius: 10,
-                            endRadius: 140
+            HStack(spacing: 8) {
+                ForEach(days, id: \.self) { day in
+                    let count = counts[day] ?? 0
+                    let isToday = calendar.isDateInToday(day)
+                    let future = day > .now
+                    VStack(spacing: 6) {
+                        ZStack {
+                            GlazeTile(color: future ? Theme.surfaceSunk.opacity(0.5) : Theme.tile(for: count), radius: 10)
+                            if count > 1 {
+                                Text("\(count)")
+                                    .font(.caption.weight(.bold).monospacedDigit())
+                                    .foregroundStyle(Theme.tileInk(for: count))
+                            }
+                        }
+                        .aspectRatio(1, contentMode: .fit)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .strokeBorder(isToday ? Theme.glaze : .clear, lineWidth: 1.5)
+                                .padding(-3)
                         )
-                    )
-            )
-            .overlay(Circle().stroke(Color.white, lineWidth: 6))
-            .shadow(color: Theme.peach.opacity(0.8), radius: 18, y: 8)
+                        Text(DateText.weekdayShort(day))
+                            .font(.caption2.weight(isToday ? .bold : .regular))
+                            .foregroundStyle(isToday ? Theme.ink : Theme.inkSoft)
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(DateText.dayTitle(day))，\(count) 次")
+                }
+            }
         }
-        .buttonStyle(SquishButtonStyle())
-        .accessibilityLabel("记录一次便便")
-        .padding(.vertical, 6)
     }
 }
 
-struct SquishButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.93 : 1)
-            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
-    }
-}
-
-struct StatsGrid: View {
+/// Plain, exact numbers in one grouped panel: label left, value right.
+struct StatsPanel: View {
     let stats: PoopStats
     let commonType: BristolType?
 
     var body: some View {
-        let since = StatsFormat.daysSince(stats.daysSinceLast)
         let interval = StatsFormat.interval(stats.averageIntervalDays)
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-            StatTile(icon: .symbol("hourglass"), title: "距上次", value: since.value, unit: since.unit, tint: Theme.sky)
-            StatTile(icon: .symbol("arrow.triangle.2.circlepath"), title: "平均间隔", value: interval.value, unit: interval.unit, tint: Theme.pink)
-            StatTile(
-                icon: .symbol("chart.line.uptrend.xyaxis"), title: "日均 · 全部",
-                value: StatsFormat.perDay(stats.averagePerDay), unit: stats.averagePerDay == nil ? "" : "次", tint: Theme.mint
-            )
-            StatTile(
-                icon: .symbol("chart.bar.fill"), title: "日均 · 近30天",
-                value: StatsFormat.perDay(stats.averagePerDayLast30), unit: stats.averagePerDayLast30 == nil ? "" : "次", tint: Theme.sky
-            )
-            StatTile(icon: .symbol("calendar"), title: "近 7 天", value: "\(stats.last7DaysCount)", unit: "次", tint: Theme.butter)
-            StatTile(icon: .symbol("moon.stars.fill"), title: "近 30 天", value: "\(stats.last30DaysCount)", unit: "次", tint: Theme.lavender)
-            StatTile(icon: .mascot, title: "累计记录", value: "\(stats.totalCount)", unit: "次", tint: Theme.peach)
-            StatTile(
-                icon: .symbol("sparkles"), title: "近30天常见",
-                value: commonType.map { "\($0.rawValue) 型" } ?? "—", unit: commonType?.name ?? "", tint: Theme.mint
-            )
+        let rows: [(String, String, String)] = [
+            ("平均间隔", interval.value, interval.unit),
+            ("日均 · 全部", StatsFormat.perDay(stats.averagePerDay), stats.averagePerDay == nil ? "" : "次"),
+            ("日均 · 近 30 天", StatsFormat.perDay(stats.averagePerDayLast30), stats.averagePerDayLast30 == nil ? "" : "次"),
+            ("近 7 天", "\(stats.last7DaysCount)", "次"),
+            ("近 30 天", "\(stats.last30DaysCount)", "次"),
+            ("累计", "\(stats.totalCount)", "次"),
+        ]
+        VStack(alignment: .leading, spacing: 10) {
+            SectionTitle("数据")
+            VStack(spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                    StatRow(label: row.0, value: row.1, unit: row.2)
+                    Divider().overlay(Theme.grout).padding(.leading, 16)
+                }
+                HStack {
+                    Text("近 30 天常见形态")
+                        .foregroundStyle(Theme.ink)
+                    Spacer()
+                    if let commonType {
+                        EntryBadge(type: commonType, size: 26)
+                        Text("\(commonType.rawValue) 型 · \(commonType.name)")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Theme.ink)
+                    } else {
+                        Text("—").foregroundStyle(Theme.inkSoft)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .frame(minHeight: 48)
+                .accessibilityElement(children: .combine)
+            }
+            .panel()
         }
     }
 }
 
-struct StatTile: View {
-    let icon: IconBadge.Icon
-    let title: String
+struct StatRow: View {
+    let label: String
     let value: String
     let unit: String
-    let tint: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                IconBadge(icon: icon, tint: .white, size: 26)
-                Text(title)
-                    .font(.rounded(14, weight: .semibold))
-                    .foregroundStyle(Theme.inkSoft)
-            }
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(value)
-                    .font(.rounded(28, weight: .heavy))
-                    .foregroundStyle(Theme.ink)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            Text(label)
+                .foregroundStyle(Theme.ink)
+            Spacer()
+            Text(value)
+                .font(.body.weight(.semibold).monospacedDigit())
+                .foregroundStyle(Theme.ink)
+            if !unit.isEmpty {
                 Text(unit)
-                    .font(.rounded(14, weight: .semibold))
+                    .font(.subheadline)
                     .foregroundStyle(Theme.inkSoft)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .card(tint: tint.opacity(0.55))
+        .padding(.horizontal, 16)
+        .frame(minHeight: 48)
         .accessibilityElement(children: .combine)
     }
 }

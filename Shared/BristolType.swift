@@ -36,12 +36,29 @@ enum BristolType: Int, CaseIterable, Identifiable, Codable {
         }
     }
 
+    /// Strong color: dry types amber, normal types glaze, loose types coral.
     var tint: Color {
         switch self {
-        case .separateLumps, .lumpySausage: Theme.butter
-        case .crackedSausage, .smoothSnake: Theme.mint
-        case .softBlobs: Theme.sky
-        case .mushy, .watery: Theme.pink
+        case .separateLumps, .lumpySausage: Theme.amber
+        case .crackedSausage, .smoothSnake, .softBlobs: Theme.glaze
+        case .mushy, .watery: Theme.coral
+        }
+    }
+
+    var paleTint: Color {
+        switch self {
+        case .separateLumps, .lumpySausage: Theme.amberPale
+        case .crackedSausage, .smoothSnake, .softBlobs: Theme.glazePale
+        case .mushy, .watery: Theme.coralPale
+        }
+    }
+
+    var group: String {
+        switch self {
+        case .separateLumps, .lumpySausage: "偏干"
+        case .crackedSausage, .smoothSnake: "理想"
+        case .softBlobs: "偏软"
+        case .mushy, .watery: "偏稀"
         }
     }
 }

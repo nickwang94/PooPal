@@ -7,6 +7,8 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
+    @AppStorage(Appearance.storageKey) private var appearance: Appearance = .system
+
     @AppStorage(ReminderSettings.inactivityEnabledKey, store: SharedStore.defaults)
     private var inactivityOn = true
     @AppStorage(ReminderSettings.inactivityDaysKey, store: SharedStore.defaults)
@@ -31,21 +33,21 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            Form {
+                appearanceSection
                 remindersSection
                 backupSection
                 aboutSection
             }
             .scrollContentBackground(.hidden)
-            .background(Theme.background.ignoresSafeArea())
+            .background(Theme.ground.ignoresSafeArea())
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }.fontWeight(.bold)
+                    Button("完成") { dismiss() }.fontWeight(.semibold)
                 }
             }
-            .tint(Theme.poop)
             .onChange(of: inactivityOn) { remindersChanged() }
             .onChange(of: inactivityDays) { remindersChanged() }
             .onChange(of: dailyOn) { remindersChanged() }
@@ -58,17 +60,34 @@ struct SettingsView: View {
             .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
                 handlePicked(result)
             }
-            .alert("这个备份有密码", isPresented: $askingPassword) {
+            .alert("这个备份设置了密码", isPresented: $askingPassword) {
                 SecureField("备份密码", text: $importPassword)
                 Button("导入") { runImport(password: importPassword) }
                 Button("取消", role: .cancel) { pendingImport = nil }
             } message: {
-                Text("请输入导出时设置的密码")
+                Text("请输入导出时设置的密码。")
             }
             .alert(message ?? "", isPresented: Binding(get: { message != nil }, set: { if !$0 { message = nil } })) {
-                Button("好的", role: .cancel) {}
+                Button("好", role: .cancel) {}
             }
         }
+        .tint(Theme.glaze)
+    }
+
+    // MARK: Appearance
+
+    private var appearanceSection: some View {
+        Section {
+            Picker(selection: $appearance) {
+                ForEach(Appearance.allCases) { Text($0.title).tag($0) }
+            } label: {
+                SettingLabel("外观", symbol: "circle.lefthalf.filled", color: Theme.ink)
+            }
+            .pickerStyle(.menu)
+        } header: {
+            Text("显示")
+        }
+        .listRowBackground(Theme.surface)
     }
 
     // MARK: Reminders
@@ -76,31 +95,34 @@ struct SettingsView: View {
     private var remindersSection: some View {
         Section {
             Toggle(isOn: $inactivityOn) {
-                rowLabel("好久没记录提醒", detail: "超过 \(inactivityDays) 天没有记录时，上午 \(ReminderSettings.inactivityHour) 点提醒你", symbol: "bell.badge.fill", tint: Theme.peach)
+                SettingLabel("好久没记录提醒", symbol: "bell.badge.fill", color: Theme.glaze)
             }
             if inactivityOn {
                 Stepper(value: $inactivityDays, in: 1...14) {
-                    Text("几天没记录就提醒：\(inactivityDays) 天")
-                        .font(.rounded(15, weight: .medium))
-                        .foregroundStyle(Theme.ink)
+                    Label {
+                        LabeledContent("超过几天提醒", value: "\(inactivityDays) 天")
+                    } icon: {
+                        Color.clear.frame(width: 29, height: 29)
+                    }
                 }
             }
             Toggle(isOn: $dailyOn) {
-                rowLabel("每日小提醒", detail: "每天固定时间问问你今天便便了吗", symbol: "alarm.fill", tint: Theme.sky)
+                SettingLabel("每日提醒", symbol: "alarm.fill", color: Theme.glaze)
             }
             if dailyOn {
                 DatePicker("提醒时间", selection: dailyTime, displayedComponents: .hourAndMinute)
-                    .font(.rounded(15, weight: .medium))
             }
             if notificationsDenied && (inactivityOn || dailyOn) {
-                Label("通知权限没有打开：请到 iPhone 设置 → 通知 → PooPal 里允许通知", systemImage: "exclamationmark.circle.fill")
-                    .font(.rounded(13))
-                    .foregroundStyle(Theme.poop)
+                Label("通知权限已关闭。请到 iPhone「设置 › 通知 › PooPal」里允许通知。", systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(Theme.coral)
             }
         } header: {
-            sectionHeader("提醒")
+            Text("提醒")
+        } footer: {
+            Text(inactivityOn ? "超过 \(inactivityDays) 天没有记录时，在上午 \(ReminderSettings.inactivityHour) 点提醒你。" : "")
         }
-        .listRowBackground(Theme.card)
+        .listRowBackground(Theme.surface)
     }
 
     private var dailyTime: Binding<Date> {
@@ -129,37 +151,41 @@ struct SettingsView: View {
     private var passwordProblem: String? {
         guard usePassword else { return nil }
         if password.count < 4 { return "密码至少 4 位" }
-        if password != passwordConfirm { return "两次输入的密码不一样" }
+        if password != passwordConfirm { return "两次输入的密码不一致" }
         return nil
     }
 
     private var backupSection: some View {
         Section {
             Toggle(isOn: $usePassword.animation()) {
-                rowLabel("给备份加密码", detail: "加密后只有输入密码才能导入；密码忘了就打不开哦", symbol: "lock.fill", tint: Theme.lavender)
+                SettingLabel("加密备份", symbol: "lock.fill", color: Theme.inkSoft)
             }
             if usePassword {
                 SecureField("设置密码（至少 4 位）", text: $password)
                 SecureField("再输入一次", text: $passwordConfirm)
                 if let problem = passwordProblem, !password.isEmpty {
                     Text(problem)
-                        .font(.rounded(13))
-                        .foregroundStyle(Theme.poop)
+                        .font(.footnote)
+                        .foregroundStyle(Theme.coral)
                 }
             }
             Button(action: export) {
-                rowLabel("导出备份", detail: "生成 JSON 文件，可以存到「文件」、发给自己或 AirDrop", symbol: "square.and.arrow.up.fill", tint: Theme.mint)
+                SettingLabel("导出备份", symbol: "square.and.arrow.up", color: Theme.glaze)
             }
             .disabled(passwordProblem != nil)
             Button {
                 importing = true
             } label: {
-                rowLabel("导入备份", detail: "合并到现有记录，重复的会自动跳过", symbol: "square.and.arrow.down.fill", tint: Theme.butter)
+                SettingLabel("导入备份", symbol: "square.and.arrow.down", color: Theme.glaze)
             }
         } header: {
-            sectionHeader("备份")
+            Text("备份")
+        } footer: {
+            Text(usePassword
+                ? "加密后只有输入密码才能导入，密码忘记将无法恢复。"
+                : "导出为 JSON 文件，可以存到「文件」或用隔空投送发给自己。导入会合并到现有记录，重复的自动跳过。")
         }
-        .listRowBackground(Theme.card)
+        .listRowBackground(Theme.surface)
     }
 
     private func export() {
@@ -197,12 +223,8 @@ struct SettingsView: View {
             pendingImport = nil
             message = "导入完成：\(plan.summary)"
         } catch let error as BackupError {
-            if error == .wrongPassword {
-                message = error.localizedDescription
-            } else {
-                pendingImport = nil
-                message = error.localizedDescription
-            }
+            if error != .wrongPassword { pendingImport = nil }
+            message = error.localizedDescription
         } catch {
             pendingImport = nil
             message = "导入失败：\(error.localizedDescription)"
@@ -213,39 +235,41 @@ struct SettingsView: View {
 
     private var aboutSection: some View {
         Section {
-            HStack(spacing: 12) {
-                PoopMascot(expression: .happy)
-                    .frame(width: 44, height: 44)
-                Text("记录只保存在这台 iPhone 上，不需要登录。换手机前记得先导出备份哦。")
-                    .font(.rounded(14))
+            VStack(alignment: .leading, spacing: 10) {
+                Logotype()
+                    .frame(height: 22)
+                Text("记录只保存在这台 iPhone 上，不需要登录。换手机前记得先导出备份。")
+                    .font(.footnote)
                     .foregroundStyle(Theme.inkSoft)
             }
-        } header: {
-            sectionHeader("关于 PooPal")
+            .padding(.vertical, 6)
         }
-        .listRowBackground(Theme.card)
+        .listRowBackground(Theme.surface)
+    }
+}
+
+/// Settings-style row label: white symbol on a small colored tile.
+struct SettingLabel: View {
+    let title: String
+    let symbol: String
+    let color: Color
+
+    init(_ title: String, symbol: String, color: Color) {
+        self.title = title
+        self.symbol = symbol
+        self.color = color
     }
 
-    // MARK: Helpers
-
-    private func rowLabel(_ title: String, detail: String, symbol: String, tint: Color) -> some View {
-        HStack(spacing: 12) {
-            IconBadge(icon: .symbol(symbol), tint: tint.opacity(0.7), size: 34)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.rounded(16, weight: .semibold))
-                    .foregroundStyle(Theme.ink)
-                Text(detail)
-                    .font(.rounded(12))
-                    .foregroundStyle(Theme.inkSoft)
-            }
+    var body: some View {
+        Label {
+            Text(title).foregroundStyle(Theme.ink)
+        } icon: {
+            Image(systemName: symbol)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Theme.onGlaze)
+                .frame(width: 29, height: 29)
+                .background(GlazeTile(color: color, radius: 7))
         }
-    }
-
-    private func sectionHeader(_ text: String) -> some View {
-        Text(text)
-            .font(.rounded(14, weight: .bold))
-            .foregroundStyle(Theme.inkSoft)
     }
 }
 

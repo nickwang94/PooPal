@@ -123,4 +123,15 @@ final class PoopStatsTests: XCTestCase {
         XCTAssertEqual(StatsFormat.daysSince(0).value, "今天")
         XCTAssertEqual(StatsFormat.daysSince(3).value, "3")
     }
+
+    func testElapsed() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let hour: TimeInterval = 3600
+        XCTAssertNil(StatsFormat.elapsed(since: nil, now: now))
+        XCTAssertEqual(StatsFormat.elapsed(since: now.addingTimeInterval(-20 * 60), now: now), "刚刚")
+        XCTAssertEqual(StatsFormat.elapsed(since: now.addingTimeInterval(60), now: now), "刚刚")
+        XCTAssertEqual(StatsFormat.elapsed(since: now.addingTimeInterval(-11.5 * hour), now: now), "11 小时")
+        XCTAssertEqual(StatsFormat.elapsed(since: now.addingTimeInterval(-47.9 * hour), now: now), "47 小时")
+        XCTAssertEqual(StatsFormat.elapsed(since: now.addingTimeInterval(-73 * hour), now: now), "3 天")
+    }
 }

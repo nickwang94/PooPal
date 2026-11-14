@@ -201,6 +201,16 @@ enum StatsFormat {
         return (String(format: "%.1f", days), "天")
     }
 
+    /// Elapsed time since the last entry: "刚刚", "3 小时", "2 天".
+    static func elapsed(since last: Date?, now: Date = .now) -> String? {
+        guard let last else { return nil }
+        let minutes = max(0, now.timeIntervalSince(last) / 60)
+        if minutes < 60 { return "刚刚" }
+        let hours = Int(minutes / 60)
+        if hours < 48 { return "\(hours) 小时" }
+        return "\(hours / 24) 天"
+    }
+
     static func daysSince(_ days: Int?) -> (value: String, unit: String) {
         guard let days else { return ("—", "") }
         if days == 0 { return ("今天", "") }

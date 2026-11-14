@@ -24,30 +24,49 @@ struct EntryEditorSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    timeCard
-                    BristolPicker(selection: $bristolType)
-                        .card()
-                    noteCard
-                    if isEditing {
-                        Button(role: .destructive) {
-                            confirmingDelete = true
-                        } label: {
-                            Label("删除这条记录", systemImage: "trash")
-                                .font(.rounded(16, weight: .semibold))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Capsule().fill(Theme.pink.opacity(0.5)))
+            Form {
+                Section {
+                    DatePicker("时间", selection: $date, in: ...Date.now, displayedComponents: [.date, .hourAndMinute])
+                    if !isEditing {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                quickChip("1 小时前") { Calendar.current.date(byAdding: .hour, value: -1, to: .now) }
+                                quickChip("今早 8 点") { Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: .now) }
+                                quickChip("昨晚 10 点") {
+                                    Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.date(bySettingHour: 22, minute: 0, second: 0, of: .now) ?? .now)
+                                }
+                            }
                         }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(Theme.ink)
                     }
                 }
-                .padding(20)
+                .listRowBackground(Theme.surface)
+
+                Section {
+                    BristolPicker(selection: $bristolType)
+                        .padding(.vertical, 6)
+                } header: {
+                    Text("形态 · 布里斯托分类")
+                }
+                .listRowBackground(Theme.surface)
+
+                Section {
+                    TextField("比如：昨晚吃了火锅、有点肚子痛", text: $note, axis: .vertical)
+                        .lineLimit(2...5)
+                } header: {
+                    Text("备注")
+                }
+                .listRowBackground(Theme.surface)
+
+                if isEditing {
+                    Section {
+                        Button("删除这条记录", role: .destructive) { confirmingDelete = true }
+                    }
+                    .listRowBackground(Theme.surface)
+                }
             }
+            .scrollContentBackground(.hidden)
+            .background(Theme.ground)
             .scrollDismissesKeyboard(.interactively)
-            .background(Theme.background.ignoresSafeArea())
             .navigationTitle(isEditing ? "编辑记录" : "补记一次")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -55,71 +74,24 @@ struct EntryEditorSheet: View {
                     Button("取消") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isEditing ? "保存" : "记下来") { save() }
-                        .fontWeight(.bold)
+                    Button(isEditing ? "保存" : "记录") { save() }
+                        .fontWeight(.semibold)
                 }
             }
-            .confirmationDialog("删除后不能恢复哦", isPresented: $confirmingDelete, titleVisibility: .visible) {
+            .confirmationDialog("删除后不能恢复", isPresented: $confirmingDelete, titleVisibility: .visible) {
                 Button("删除", role: .destructive) { delete() }
             }
-            .tint(Theme.poop)
         }
-    }
-
-    private var timeCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                IconBadge(icon: .symbol("clock.fill"), tint: Theme.cream, size: 30)
-                Text("什么时候呀？")
-                    .font(.rounded(17, weight: .bold))
-                    .foregroundStyle(Theme.ink)
-            }
-            DatePicker("时间", selection: $date, in: ...Date.now, displayedComponents: [.date, .hourAndMinute])
-                .labelsHidden()
-            if !isEditing {
-                HStack(spacing: 8) {
-                    quickChip("1 小时前") { Calendar.current.date(byAdding: .hour, value: -1, to: .now) }
-                    quickChip("今早 8 点") { Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: .now) }
-                    quickChip("昨天这时") { Calendar.current.date(byAdding: .day, value: -1, to: .now) }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
-    }
-
-    private var noteCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                IconBadge(icon: .symbol("pencil"), tint: Theme.cream, size: 30)
-                Text("小备注")
-                    .font(.rounded(17, weight: .bold))
-                    .foregroundStyle(Theme.ink)
-                Text("可不填")
-                    .font(.rounded(12))
-                    .foregroundStyle(Theme.inkSoft)
-            }
-            TextField("比如：昨晚吃了火锅、有点肚子痛…", text: $note, axis: .vertical)
-                .font(.rounded(16))
-                .lineLimit(2...5)
-                .padding(12)
-                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.background))
-        }
-        .card()
+        .tint(Theme.glaze)
     }
 
     private func quickChip(_ title: String, date makeDate: @escaping () -> Date?) -> some View {
-        Button {
+        Button(title) {
             if let value = makeDate() { date = min(value, .now) }
-        } label: {
-            Text(title)
-                .font(.rounded(13, weight: .semibold))
-                .foregroundStyle(Theme.ink)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(Capsule().fill(Theme.lavender.opacity(0.7)))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .controlSize(.small)
     }
 
     private func save() {

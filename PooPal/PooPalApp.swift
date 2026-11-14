@@ -50,19 +50,22 @@ struct ContentView: View {
     /// Bumped when the widget wrote to the store, so the queries refetch.
     @State private var refreshToken = 0
     @State private var seenExternalChange = SharedStore.lastExternalChange
+    /// `-appearance dark|light` also works as a launch argument (screenshots).
+    @AppStorage(Appearance.storageKey) private var appearance: Appearance = .system
 
     var body: some View {
         TabView(selection: $tab) {
             HomeView()
                 .id(refreshToken)
-                .tabItem { Label("首页", systemImage: "house.fill") }
+                .tabItem { Label("今天", systemImage: "house.fill") }
                 .tag(Tab.home)
             HistoryView()
                 .id(refreshToken)
-                .tabItem { Label("记录", systemImage: "calendar") }
+                .tabItem { Label("记录", systemImage: "square.grid.3x3.fill") }
                 .tag(Tab.history)
         }
-        .tint(Theme.poop)
+        .tint(Theme.glaze)
+        .preferredColorScheme(appearance.colorScheme)
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, !PooPalApp.usesInMemoryStore else { return }
             let latest = SharedStore.lastExternalChange

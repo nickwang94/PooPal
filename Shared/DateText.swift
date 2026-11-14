@@ -22,6 +22,13 @@ enum DateText {
 
     static func month(_ date: Date) -> String { yearMonth.string(from: date) }
 
+    private static let weekdayNames = ["日", "一", "二", "三", "四", "五", "六"]
+
+    /// Single-character weekday: "一" … "日".
+    static func weekdayShort(_ date: Date, calendar: Calendar = .current) -> String {
+        weekdayNames[calendar.component(.weekday, from: date) - 1]
+    }
+
     /// "今天" / "昨天" / "11月2日 星期一"
     static func dayTitle(_ date: Date, calendar: Calendar = .current) -> String {
         if calendar.isDateInToday(date) { return "今天" }
