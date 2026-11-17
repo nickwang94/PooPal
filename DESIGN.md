@@ -1,169 +1,219 @@
 ---
 name: PooPal
-description: A private gut log set in a bathroom-tile world; every day is a glazed tile.
+description: A sticker habit journal for your gut; every visit is a round sticker, and a small buddy keeps you company.
 colors:
-  ground: "#F2F5F4"
-  ground-dark: "#0A1413"
+  ground: "#FFF8F0"
+  ground-dark: "#1C1620"
   surface: "#FFFFFF"
-  surface-dark: "#13201E"
-  surface-sunk: "#E6EDEB"
-  surface-sunk-dark: "#1B2B29"
-  grout: "#D6E0DE"
-  grout-dark: "#263A37"
-  ink: "#0E1E1C"
-  ink-dark: "#E4EFED"
-  ink-soft: "#4A5E5B"
-  ink-soft-dark: "#9BB2AE"
-  glaze: "#0F5F59"
-  glaze-dark: "#2F9A8F"
-  glaze-deep: "#0A4642"
-  glaze-deep-dark: "#1E6E66"
-  glaze-light: "#6DB3AA"
-  glaze-light-dark: "#2A7A72"
-  glaze-pale: "#C4E2DD"
-  glaze-pale-dark: "#1D4743"
-  on-glaze: "#F3FBF9"
-  action-top: "#0F5F59"
-  action-top-dark: "#1C6B63"
-  action-bottom: "#0A4642"
-  action-bottom-dark: "#0F4541"
-  mosaic-1: "#A8D5CE"
-  mosaic-1-dark: "#1B4A45"
-  mosaic-2: "#3E8C83"
-  mosaic-2-dark: "#2A7F76"
-  mosaic-3: "#0A4642"
-  mosaic-3-dark: "#52C4B6"
-  amber: "#C27A1E"
-  amber-dark: "#E9A956"
-  amber-pale: "#F6E2C4"
-  amber-pale-dark: "#3F2E16"
-  coral: "#C2513D"
-  coral-dark: "#EE8A75"
-  coral-pale: "#F6D6CF"
-  coral-pale-dark: "#45231D"
+  surface-dark: "#2A2230"
+  surface-sunk: "#F6ECE1"
+  surface-sunk-dark: "#352B3B"
+  line: "#EDE1D5"
+  line-dark: "#41364A"
+  ink: "#3A2A3E"
+  ink-dark: "#F7EEE6"
+  ink-soft: "#7A6A7E"
+  ink-soft-dark: "#B9A9BD"
+  accent: "#7A4BA0"
+  accent-dark: "#C59BEA"
+  accent-soft: "#D6C3E8"
+  accent-soft-dark: "#5A4470"
+  accent-pale: "#F1E8F8"
+  accent-pale-dark: "#3A2E48"
+  on-accent: "#FFFFFF"
+  on-accent-dark: "#241A2B"
+  sunny: "#FFC83D"
+  sunny-dark: "#F5B83A"
+  sunny-deep: "#F6AE22"
+  sunny-deep-dark: "#D99A22"
+  on-sunny: "#3A2440"
+  day-1: "#FFE7A6"
+  day-1-dark: "#EBD7A2"
+  day-2: "#FFC83D"
+  day-2-dark: "#F2B53A"
+  day-3: "#F29A2E"
+  day-3-dark: "#EE8F2A"
+  day-ink: "#3A2440"
+  dry: "#D9711F"
+  dry-dark: "#F5A25A"
+  dry-pale: "#FDE6D0"
+  dry-pale-dark: "#F2D6BC"
+  ideal: "#3B8D5A"
+  ideal-dark: "#7CCB95"
+  ideal-pale: "#DDF1E2"
+  ideal-pale-dark: "#CBE6D3"
+  loose: "#3A7FC6"
+  loose-dark: "#86BDF2"
+  loose-pale: "#DCEAF9"
+  loose-pale-dark: "#CCDDF1"
+  dry-ink: "#C2631A"
+  ideal-ink: "#2F7A4B"
+  loose-ink: "#2F6DB0"
+  alert: "#D23F5C"
+  alert-dark: "#FF8098"
+  blush: "#FF8FA3"
+  sticker-edge: "#FFFFFF"
+  sticker-edge-dark: "#EDE3EA"
 typography:
   count:
-    fontFamily: "SF Pro (system), monospaced digits"
+    fontFamily: "SF Pro Rounded (system), monospaced digits"
     fontSize: "largeTitle"
     fontWeight: 700
+  action:
+    fontFamily: "SF Pro Rounded (system)"
+    fontSize: "title"
+    fontWeight: 800
   section-title:
-    fontFamily: "SF Pro (system)"
+    fontFamily: "SF Pro Rounded (system)"
     fontSize: "title3"
-    fontWeight: 600
+    fontWeight: 700
   body:
-    fontFamily: "SF Pro (system)"
+    fontFamily: "SF Pro Rounded (system)"
     fontSize: "body"
     fontWeight: 400
-  data:
-    fontFamily: "SF Pro (system), monospaced digits"
-    fontSize: "body"
-    fontWeight: 600
   caption:
-    fontFamily: "SF Pro (system)"
+    fontFamily: "SF Pro Rounded (system)"
     fontSize: "caption / caption2"
     fontWeight: 500
 rounded:
-  tile-sm: "3px"
-  tile: "8px"
-  tile-week: "10px"
-  tile-picker: "12px"
-  panel: "20px"
-  action: "28px"
+  settings-icon: "50%"
+  day-sticker: "50%"
+  picker-sticker: "18px"
+  panel: "24px"
+  log-sticker: "32px"
+  button: "capsule"
 spacing:
   screen-edge: "20px"
-  section-gap: "28px"
-  tile-gap: "6px"
+  section-gap: "30px"
+  sticker-gap: "6px"
   panel-row: "16px"
 components:
-  log-tile-button:
-    backgroundColor: "{colors.action-top}"
-    textColor: "{colors.on-glaze}"
-    rounded: "{rounded.action}"
+  log-sticker-button:
+    backgroundColor: "{colors.sunny}"
+    textColor: "{colors.on-sunny}"
+    rounded: "{rounded.log-sticker}"
     padding: "22px"
-    height: "176px"
+    height: "180px"
+  secondary-button:
+    backgroundColor: "{colors.accent-pale}"
+    textColor: "{colors.accent}"
+    rounded: "{rounded.button}"
   panel:
     backgroundColor: "{colors.surface}"
     rounded: "{rounded.panel}"
-  day-tile-0:
+  day-sticker-0:
     backgroundColor: "{colors.surface-sunk}"
     textColor: "{colors.ink-soft}"
-    rounded: "{rounded.tile}"
-  day-tile-1:
-    backgroundColor: "{colors.mosaic-1}"
-    textColor: "{colors.glaze-deep}"
-    rounded: "{rounded.tile}"
-  day-tile-2:
-    backgroundColor: "{colors.mosaic-2}"
-    textColor: "{colors.on-glaze}"
-    rounded: "{rounded.tile}"
-  day-tile-3:
-    backgroundColor: "{colors.mosaic-3}"
-    textColor: "{colors.on-glaze}"
-    rounded: "{rounded.tile}"
-  bristol-tile:
-    backgroundColor: "{colors.glaze-pale}"
+    rounded: "{rounded.day-sticker}"
+  day-sticker-1:
+    backgroundColor: "{colors.day-1}"
+    textColor: "{colors.day-ink}"
+    rounded: "{rounded.day-sticker}"
+  day-sticker-2:
+    backgroundColor: "{colors.day-2}"
+    textColor: "{colors.day-ink}"
+    rounded: "{rounded.day-sticker}"
+  day-sticker-3:
+    backgroundColor: "{colors.day-3}"
+    textColor: "{colors.day-ink}"
+    rounded: "{rounded.day-sticker}"
+  bristol-sticker:
+    backgroundColor: "{colors.ideal-pale}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.tile-picker}"
+    rounded: "{rounded.picker-sticker}"
     height: "84px"
-  settings-icon:
-    backgroundColor: "{colors.glaze}"
-    textColor: "{colors.on-glaze}"
-    rounded: "7px"
-    size: "29px"
+  pal-buddy:
+    backgroundColor: "{colors.sunny}"
+    textColor: "{colors.on-sunny}"
+    size: "76px"
 ---
 
 # PooPal design system
 
-Source of truth: `Shared/Theme.swift` (tokens, `GlazeTile`, `.panel()`), `Shared/Logotype.swift` (the wordmark), `Shared/BristolType.swift` (state colors). Every color is a light/dark pair built with `Theme.dynamic(light:dark:)`; the `-dark` keys above are the dark halves of the same token, not separate tokens.
+Source of truth:
+- `Shared/Theme.swift`: tokens, `Sticker`, and `.panel()`.
+- `Shared/Logotype.swift`: the wordmark.
+- `Shared/PalBuddy.swift`: the buddy character.
+- `Shared/BristolType.swift`: the state colors.
+
+Every color is a light/dark pair built with `Theme.dynamic(light:dark:)`. The `-dark` keys above are the dark halves of the same token, not separate tokens.
 
 ## Overview
 
-A bathroom-tile world for a private gut log. Porcelain ground, one committed glaze teal, and rounded-square tiles with a soft glaze highlight. Every day is a tile; logging fills tiles. Operate mode on iOS: native navigation, forms, pickers and Dynamic Type everywhere; the identity lives in color, tiles and the wordmark, not in custom chrome.
+PooPal is a sticker habit journal (手帐) for one person's gut. It is warm, soft and a little playful, and it stays tasteful.
 
-It refuses the category default: pastel cards, a cartoon mascot, emoji, and a grid of same-size stat cards.
+- Every visit is a round die-cut sticker pressed onto the day.
+- A small round marigold buddy, the "Pal", greets you, and its face follows how you're doing.
+- It is native iOS in Operate mode: system navigation, forms, pickers and Dynamic Type everywhere.
+- Personality lives in color, stickers, the buddy, the wordmark, copy and motion.
 
-Light and dark are both first-class. Users pick 跟随系统 / 浅色 / 深色 in 设置 › 显示 › 外观 (`Appearance`, stored under `appearance`), applied with `preferredColorScheme` at the root.
+It refuses two looks: the clinical health dashboard (teal, stat-card grids, a business tone) and the cartoon-poop kids' app. The buddy is abstract and never poop-shaped, and there is no emoji anywhere.
+
+Light and dark are both first-class. Users pick 跟随系统 / 浅色 / 深色 in 设置 › 看起来 › 外观 (`Appearance`, stored under `appearance`), applied with `preferredColorScheme` at the root.
 
 ## Colors
 
-- **Ground and surfaces.** `ground` is the screen; `surface` holds grouped content; `surface-sunk` is an empty tile; `grout` is the hairline between rows and the panel border.
-- **Glaze** is the only brand and action color: primary button, selection, today/selected rings, chart current bucket, settings icons, tint.
-- **Action** (`action-top` → `action-bottom`) is the big log tile's gradient. It is dimmer in dark so the brightest object on screen does not glare at night.
-- **Mosaic** levels 1–3 encode a day's count. Lightness moves monotonically toward "more" in each appearance: darker in light mode, brighter in dark mode. Always pair a tile color with `Theme.tileInk(for:)` for numerals.
-- **Amber and coral are reserved** for Bristol dry (types 1–2) and loose (types 6–7). Types 3–5 use glaze. Never use amber or coral for chrome, icons or emphasis.
+- **Ground and surfaces.** `ground` is a warm milk in light mode and a plum-black in dark. `surface` holds grouped content; `surface-sunk` marks an empty past day; `line` is the hairline between rows.
+- **Sunny marigold** is the brand field: the log sticker, the buddy, the widget and the icon. Text on marigold always uses `on-sunny` (deep plum), never white.
+- **Plum** (`accent`) is the one interactive tint: controls, today and selected rings, the count numeral, the current chart bar, links in the toast.
+- **Day stickers** (`day-1` to `day-3`) step from pale butter to marigold to tangerine as the count rises. They stay bright in dark mode, because real stickers do, and they are never darkened into brown. Numerals on them are always `day-ink`.
+- **Bristol states:** tangerine `dry` (types 1–2), leaf `ideal` (types 3–5) and sky `loose` (types 6–7), each with a pale tint for its sticker. Pale tints stay light in dark mode (stickers are paper), and glyphs on them use the fixed deep `*-ink` shades. `alert` (rose) is only for undo, delete and warnings.
 
 ## Typography
 
-SF Pro only, via Dynamic Type text styles (`largeTitle`, `title3`, `headline`, `body`, `subheadline`, `footnote`, `caption`, `caption2`). Every number uses `.monospacedDigit()`. The only display voice is the `Logotype` wordmark; never set "PooPal" in a font.
+SF Pro Rounded everywhere, set once with `.fontDesign(.rounded)` at the app root, each sheet root and the widget. Only Dynamic Type text styles are used. Numbers use `.monospacedDigit()`. The primary action ("记一下") is heavy, and section titles are bold. The `Logotype` wordmark is the only display voice.
 
 ## Layout
 
-20pt screen edges, 28pt between home sections, 6–8pt between tiles. The home first viewport: wordmark left and settings gear right (no navigation bar), date, the "今天 N 次" count line, status sentence, the full-width log tile (about a quarter of the screen), then 补记一次, then this week's seven tiles. Stats are plain label/value rows in one panel, never a card grid. 记录 puts its 日历 / 列表 / 趋势 segmented control in the navigation bar.
+- **Margins and spacing:** 20pt screen edges and 30pt between home sections.
+- **Home first viewport:**
+  - The wordmark sits top-left with the settings gear top-right; there is no navigation bar.
+  - Below them come the greeting with the date, "今天 N 次" in large title, and a plum "距上次 X" line followed by the mood sentence. The buddy (76pt) sits on the right of this block.
+  - Next is the full-width marigold log sticker, then the capsule "忘了记？补一条" button, then this week's seven round stickers.
+- **Statistics:** Home shows only a short "最近怎么样" panel (近 7 天来了, 大概多久一次, most common type). The full table lives in 趋势 under a collapsed "全部数字". Both are plain label/value rows, never a card grid.
+- **贴纸本 (History)** has a large title "我的贴纸本" with the 日历 / 列表 / 趋势 segmented control in the navigation bar. 趋势 opens with a sentence ("这周 N 次，上周 M 次") instead of a dashboard header.
 
 ## Elevation & Depth
 
-Flat by default. `GlazeTile` carries a 1pt offset shadow (black 10%, radius 1.5) and a top-half white highlight (22% → clear); that is the whole tile vocabulary. The log tile adds a teal drop shadow (glaze-deep 35%, radius 14, y 8) and a radial highlight (16% light, 8% dark). Panels have no shadow, only a 0.5pt grout border.
+- **Stickers** carry a die-cut edge (2.5pt in `sticker-edge`) and a small lift shadow (black 12%, radius 2.5, y 1.5).
+- **The log sticker** has a 4pt edge and a soft marigold shadow in light mode (`sunny-deep` 25%, radius 14, y 6); in dark mode it uses a plain black shadow (35%, radius 10) so it doesn't glow.
+- **Panels** have no border. In light mode they float on a faint warm shadow (`#5A3A2A` at 7%, radius 14, y 6); in dark mode they are flat.
 
 ## Shapes
 
-Continuous rounded rectangles throughout. Radius scales with size: 3 (legend swatch), 7 (settings icon), 8 (calendar day), 10 (week day), 12 (Bristol picker), 20 (panels), 28 (log tile).
+- **Round:** day stickers, entry badges, settings icons, the buddy, and the capsule buttons.
+- **Soft rectangles:** picker stickers (18), panels (24) and the log sticker (32).
+- **Tilt:** stickers tilt a few degrees, the way hand-placed stickers do. Day stickers tilt deterministically by count, and selected picker stickers tilt −3°.
 
 ## Components
 
-- **Logotype** (`.line` / `.stacked`): monoline geometric wordmark drawn in a Canvas, butt caps, stroke 0.25 of x-height. In-app at 22pt high; the app icon is the `.line` layout at about 78% of the icon width on flat glaze.
-- **LogTileButton**: the primary action. Today's entries appear inside it as six small tiles; tapping logs now with success haptics and an undo toast.
-- **WeekMosaic / MonthMosaic / DayTile**: count tiles with `tile(for:)` / `tileInk(for:)`. Today gets a glaze ring; the selected day gets a 2pt glaze ring.
-- **BristolPicker**: a 4×2 grid of the seven types plus 不确定. Unselected tiles use the type's pale tint; selected tiles fill with the type's tint. The group and hint footnote appears only once a type is chosen.
-- **EntryBadge / BristolGlyph**: monochrome drawings of each type, with no faces.
-- **Panel** (`.panel()`): surface fill, 20pt radius, grout hairline, rows separated by inset dividers.
-- **Widget**: a glaze-gradient container, an on-glaze wordmark and counts, and a porcelain 记一次 button that runs `LogPoopIntent`.
+- **Logotype:** rounded monoline letters with round caps and stroke 0.28 of x-height. `eyes: true` adds pupils to the two "o"s of "Poo", and the app icon uses it at about 85% of the icon width (870 of 1024), on one line.
+  - **App icon:** deep plum letters on a marigold gradient.
+  - **Dark icon:** marigold letters on plum-black.
+- **PalBuddy:** a marigold ellipse with a white edge, two dot eyes, blush cheeks and a mouth.
+  - **Faces:** hello, beaming, smile, calm and worried, mapped from `PoopMood`.
+  - **Motion:** it blinks every few seconds and hops when you log. Both are off under Reduce Motion.
+- **LogStickerButton:** squishes when pressed (scale 0.95, bouncy spring).
+  - Today's visits show as overlapping tilted entry stickers (up to 5, then "+N") in the top corner. Logging adds one and bursts 12 confetti dots in the state colors.
+  - The buddy hops and success haptics play. Confetti is skipped under Reduce Motion.
+- **WeekStickers / MonthMosaic / DaySticker:** each day is a round sticker.
+  - Future days are dashed slots, and empty past days are flat sunk circles.
+  - Today and the selected day get a plum ring.
+  - On the calendar, days with more than one visit get a plum count badge.
+- **BristolPicker:** a 4×2 grid of the seven types plus 不确定. A selected sticker fills with its state tint, lifts, tilts and scales up with a spring.
+- **Toast:** a material capsule reading "记好啦 · HH:mm", with 加点细节 and 撤销.
+- **Widget:** a marigold background with the buddy and counts in plum, plus a white "记一下" button with a fixed plum label that runs `LogPoopIntent`.
+
+## Voice
+
+Casual and warm, like a friend checking in, for example "记一下", "忘了记？补一条", "最近怎么样", "记好啦", "肠道小伙伴给你比个心". Health advice stays plain and kind, and the copy is never crude.
 
 ## Do's and Don'ts
 
-- Do use native `Form`, `List`, `Picker`, `Stepper`, `DatePicker` and segmented controls; tint them glaze.
+- Do use native `Form`, `List`, `Picker`, `Stepper`, `DatePicker` and segmented controls, tinted plum.
 - Do keep touch targets at 44pt minimum.
-- Don't add emoji, mascots or faces.
-- Don't add eyebrow or kicker labels.
-- Don't put a second accent color in chrome.
+- Do respect Reduce Motion: no blink, hop or confetti.
+- Don't use emoji, poop shapes, or white text on marigold.
+- Don't tint chrome with the state colors (tangerine, leaf, sky). Exception: the small settings icon circles.
 - Don't use same-size stat card grids.
-- Don't use colored text on colored tiles without checking contrast in both appearances.
+- Don't set the wordmark in a font.

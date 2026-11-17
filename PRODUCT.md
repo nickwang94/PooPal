@@ -13,14 +13,15 @@ Chinese-speaking adults tracking their own gut health, often after a doctor's su
 - Native iOS 17+, SwiftUI + SwiftData, iPhone only. Platform: `ios`.
 - Free Apple Personal Team signing: no paid capabilities (no iCloud, no push). App Group for the widget is available.
 - Data stays on device; no account.
-- UI copy in Simplified Chinese; friendly, lightly playful, never crude.
+- UI copy in Simplified Chinese; casual and warm, like a friend checking in; playful but never crude.
 - No emoji used as icons; SF Symbols or authored drawings only.
 - Light and dark appearance, user-selectable (system / light / dark).
 
 ## Brand commitments
 
 - Name: PooPal. App icon is a lettering mark of the name.
-- Tone: calm and trustworthy first, warmth through copy and motion rather than cartoons.
+- Personal, not business: a daily-habit companion for one person. Warm, soft and a little playful, with some character (a small "Pal" buddy) and gentle delight in motion; tasteful, never childish. (v3 "glazed tile" was rejected by the owner as too business-like.)
+- Never a poop-shaped mascot or emoji; the character is an abstract round buddy.
 
 ## Surfaces
 

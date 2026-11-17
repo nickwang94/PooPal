@@ -37,12 +37,12 @@ shot() {
 }
 
 for mode in light dark; do
-  shot v3-$mode-home -demoData -appearance $mode
-  shot v3-$mode-home-stats -demoData -homeScroll stats -appearance $mode
-  shot v3-$mode-history-calendar -demoData -startTab history -appearance $mode
-  shot v3-$mode-history-list -demoData -startTab history -historyMode list -appearance $mode
-  shot v3-$mode-trends -demoData -startTab history -historyMode trends -appearance $mode
-  shot v3-$mode-add-entry -demoData -showAddEntry YES -appearance $mode
-  shot v3-$mode-settings -demoData -showSettings YES -appearance $mode
-  shot v3-$mode-empty -emptyStore -appearance $mode
+  shot v4-$mode-home -demoData -appearance $mode
+  shot v4-$mode-home-stats -demoData -homeScroll stats -appearance $mode
+  shot v4-$mode-history-calendar -demoData -startTab history -appearance $mode
+  shot v4-$mode-history-list -demoData -startTab history -historyMode list -appearance $mode
+  shot v4-$mode-trends -demoData -startTab history -historyMode trends -appearance $mode
+  shot v4-$mode-add-entry -demoData -showAddEntry YES -appearance $mode
+  shot v4-$mode-settings -demoData -showSettings YES -appearance $mode
+  shot v4-$mode-empty -emptyStore -appearance $mode
 done
