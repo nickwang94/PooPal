@@ -18,12 +18,11 @@ struct IconView: View {
             switch variant {
             case .standard:
                 ZStack {
-                    Color(hex: 0x0F5F59)
-                    // Glaze: the same soft top highlight as the in-app tiles.
-                    LinearGradient(colors: [.white.opacity(0.12), .clear], startPoint: .top, endPoint: .center)
+                    LinearGradient(colors: [Color(hex: 0xFFD45E), Color(hex: 0xFFC23A), Color(hex: 0xF7A91F)], startPoint: .top, endPoint: .bottom)
+                    RadialGradient(colors: [.white.opacity(0.22), .clear], center: UnitPoint(x: 0.3, y: 0.15), startRadius: 0, endRadius: 620)
                 }
             case .dark:
-                LinearGradient(colors: [Color(hex: 0x10201E), Color(hex: 0x060D0C)], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [Color(hex: 0x2A2130), Color(hex: 0x17111B)], startPoint: .top, endPoint: .bottom)
             case .tinted:
                 Color.black
             }
@@ -32,8 +31,8 @@ struct IconView: View {
 
     private var letterColor: Color {
         switch variant {
-        case .standard: Color(hex: 0xF3FBF9)
-        case .dark: Color(hex: 0x5EC2B6)
+        case .standard: Color(hex: 0x4A2A63)
+        case .dark: Color(hex: 0xFFC83D)
         case .tinted: Color(white: 0.92)
         }
     }
@@ -41,8 +40,9 @@ struct IconView: View {
     var body: some View {
         ZStack {
             background
-            Logotype(layout: .line, color: letterColor)
+            Logotype(layout: .line, color: letterColor, eyes: true)
                 .frame(width: 800)
+                .offset(y: 8)
         }
         .frame(width: 1024, height: 1024)
     }
