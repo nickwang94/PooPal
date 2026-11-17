@@ -5,6 +5,7 @@ struct TrendsView: View {
     let entries: [PoopEntry]
 
     @State private var period: TrendPeriod = .week
+    @State private var showingAllNumbers = false
 
     private var buckets: [TrendBucket] {
         Trends.buckets(entries.map(\.timestamp), period: period, count: 12)
@@ -19,6 +20,7 @@ struct TrendsView: View {
             VStack(alignment: .leading, spacing: 28) {
                 countSection
                 bristolSection
+                allNumbersSection
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -43,11 +45,12 @@ struct TrendsView: View {
                 .frame(width: 150)
             }
             VStack(alignment: .leading, spacing: 16) {
-                HStack(alignment: .firstTextBaseline, spacing: 20) {
-                    figure("本\(unit)", "\(current)")
-                    figure("上\(unit)", "\(previous)")
-                    figure("12 \(unit)平均", String(format: "%.1f", average))
-                }
+                (Text("这\(unit) ") + Text("\(current)").bold().foregroundStyle(Theme.accent) + Text(" 次，上\(unit) \(previous) 次"))
+                    .font(.title3.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(Theme.ink)
+                Text(String(format: "最近 12 \(unit)平均每\(unit) %.1f 次（虚线）", average))
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.inkSoft)
                 Chart {
                     ForEach(buckets) { bucket in
                         BarMark(
@@ -85,16 +88,16 @@ struct TrendsView: View {
         }
     }
 
-    private func figure(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(value)
-                .font(.title2.weight(.bold).monospacedDigit())
-                .foregroundStyle(Theme.ink)
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(Theme.inkSoft)
+    private var allNumbersSection: some View {
+        let stats = PoopStats(dates: entries.map(\.timestamp))
+        let common = PoopStats.mostCommonBristol(entries.map { ($0.timestamp, $0.bristolType) })
+        return DisclosureGroup(isExpanded: $showingAllNumbers) {
+            StatsPanel(stats: stats, commonType: common)
+                .padding(.top, 12)
+        } label: {
+            SectionTitle("全部数字")
         }
-        .accessibilityElement(children: .combine)
+        .tint(Theme.accent)
     }
 
     private var bristolSection: some View {

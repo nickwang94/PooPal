@@ -41,7 +41,7 @@ struct HistoryView: View {
             }
             .background(Theme.ground.ignoresSafeArea())
             .navigationTitle("我的贴纸本")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 if !entries.isEmpty {
                     ToolbarItem(placement: .principal) {

@@ -41,7 +41,7 @@ struct IconView: View {
         ZStack {
             background
             Logotype(layout: .line, color: letterColor, eyes: true)
-                .frame(width: 800)
+                .frame(width: 870)
                 .offset(y: 8)
         }
         .frame(width: 1024, height: 1024)

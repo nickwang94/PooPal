@@ -10,9 +10,14 @@ struct HomeView: View {
     @State private var editing: PoopEntry?
     @State private var lastLogged: PoopEntry?
     @State private var logCount = 0
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var stats: PoopStats { PoopStats(dates: entries.map(\.timestamp)) }
     private var mood: PoopMood { PoopMood(daysSinceLast: stats.daysSinceLast) }
+    private var todayTypes: [BristolType?] {
+        entries.filter { Calendar.current.isDateInToday($0.timestamp) }.reversed().map(\.bristol)
+    }
     private var commonType: BristolType? {
         PoopStats.mostCommonBristol(entries.map { ($0.timestamp, $0.bristolType) })
     }
@@ -24,7 +29,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 30) {
                         todayHeader
                         VStack(spacing: 12) {
-                            LogStickerButton(todayCount: stats.todayCount, burst: logCount, action: logNow)
+                            LogStickerButton(todayTypes: todayTypes, burst: logCount, action: logNow)
                             Button {
                                 showingAddSheet = true
                             } label: {
@@ -38,7 +43,7 @@ struct HomeView: View {
                             .tint(Theme.accent)
                         }
                         WeekStickers(dates: entries.map(\.timestamp))
-                        StatsPanel(stats: stats, commonType: commonType)
+                        SummaryPanel(stats: stats, commonType: commonType)
                             .id("stats")
                         recentSection
                     }
@@ -84,7 +89,10 @@ struct HomeView: View {
                 .accessibilityLabel("设置")
                 .padding(.trailing, -10)
             }
-            HStack(alignment: .center, spacing: 12) {
+            let layout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+            layout {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(DateText.greeting(.now))，\(DateText.header(.now))")
                         .font(.subheadline.weight(.medium))
@@ -110,7 +118,7 @@ struct HomeView: View {
                         .foregroundStyle(Theme.inkSoft)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer(minLength: 0)
+                if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 PalBuddy(face: PalBuddy.Face(mood), hop: logCount)
                     .frame(width: 76, height: 76)
             }
@@ -173,7 +181,7 @@ struct HomeView: View {
             .shadow(color: .black.opacity(0.12), radius: 16, y: 6)
             .padding(.horizontal, 16)
             .padding(.bottom, 10)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
         }
     }
 
@@ -213,30 +221,32 @@ struct SectionTitle: View {
     }
 }
 
-/// The primary action: a big marigold sticker. Today's visits appear on it as small stickers.
+/// The primary action: a big marigold sticker. Today's visits are pressed onto it as real stickers.
 struct LogStickerButton: View {
-    let todayCount: Int
+    let todayTypes: [BristolType?]
     /// Changes on every log; drives the confetti.
     let burst: Int
     let action: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top) {
                     Image(systemName: "plus")
                         .font(.title2.weight(.heavy))
                         .frame(width: 44, height: 44)
                         .background(Circle().fill(Theme.onSunny.opacity(0.1)))
-                    Spacer(minLength: 0)
-                    Text("记一下")
-                        .font(.title.weight(.heavy))
-                    Text("刚去过？点我就记好")
-                        .font(.subheadline.weight(.medium))
-                        .opacity(0.75)
+                    Spacer()
+                    TodayStickers(types: todayTypes)
                 }
-                Spacer()
-                TodayStickers(count: todayCount)
+                Spacer(minLength: 12)
+                Text("记一下")
+                    .font(.title.weight(.heavy))
+                Text(todayTypes.isEmpty ? "刚去过？点我就记好" : "今天的第 \(todayTypes.count + 1) 张贴纸，点我就记好")
+                    .font(.subheadline.weight(.medium))
+                    .opacity(0.8)
             }
             .foregroundStyle(Theme.onSunny)
             .padding(22)
@@ -246,45 +256,43 @@ struct LogStickerButton: View {
                     .fill(LinearGradient(colors: [Theme.sunny, Theme.sunnyDeep], startPoint: .top, endPoint: .bottom))
                     .overlay(
                         RoundedRectangle(cornerRadius: 32, style: .continuous)
-                            .strokeBorder(Theme.stickerEdge, lineWidth: 4)
+                            .strokeBorder(Color.white, lineWidth: 4)
                     )
-                    .shadow(color: Theme.sunnyDeep.opacity(0.45), radius: 16, x: 0, y: 8)
+                    .shadow(
+                        color: colorScheme == .dark ? .black.opacity(0.35) : Theme.sunnyDeep.opacity(0.25),
+                        radius: colorScheme == .dark ? 10 : 14, x: 0, y: 6
+                    )
             )
             .overlay { ConfettiBurst(trigger: burst) }
         }
         .buttonStyle(PressableStyle(scale: 0.95))
         .accessibilityLabel("记一下，记录现在")
-        .accessibilityValue("今天已记录 \(todayCount) 次")
+        .accessibilityValue("今天已记录 \(todayTypes.count) 次")
     }
 }
 
-/// Up to 6 small stickers in a 3-column grid; filled ones are today's visits.
+/// Today's visits as an overlapping stack of tilted stickers, oldest first.
 struct TodayStickers: View {
-    let count: Int
-    private let slots = 6
+    let types: [BristolType?]
+    @ScaledMetric(relativeTo: .title) private var size: CGFloat = 34
+    private let maxShown = 5
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 6) {
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(18), spacing: 6), count: 3), spacing: 6) {
-                ForEach(0..<slots, id: \.self) { index in
-                    let filled = index < count
-                    ZStack {
-                        Circle()
-                            .fill(Theme.onSunny.opacity(0.12))
-                        if filled {
-                            Sticker(color: Color(hex: 0x7A4BA0), edge: 2.5)
-                                .transition(.scale(scale: 0.2).combined(with: .opacity))
-                        }
-                    }
-                    .frame(width: 18, height: 18)
-                }
+        HStack(spacing: -size * 0.32) {
+            ForEach(Array(types.prefix(maxShown).enumerated()), id: \.offset) { index, type in
+                EntryBadge(type: type, size: size)
+                    .rotationEffect(.degrees([-8, 6, -4, 9, -6][index % 5]))
+                    .transition(.scale(scale: 0.2).combined(with: .opacity))
             }
-            .frame(width: 70)
-            .animation(.spring(response: 0.4, dampingFraction: 0.5), value: count)
-            Text(count > slots ? "今天 \(count) 次" : "今天")
-                .font(.caption.weight(.semibold))
-                .opacity(0.75)
+            if types.count > maxShown {
+                Text("+\(types.count - maxShown)")
+                    .font(.subheadline.weight(.heavy).monospacedDigit())
+                    .foregroundStyle(Theme.onSunny)
+                    .frame(width: size, height: size)
+                    .background(Circle().fill(Color.white))
+            }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.5), value: types.count)
         .accessibilityHidden(true)
     }
 }
@@ -399,7 +407,51 @@ struct DaySticker<Label: View>: View {
     }
 }
 
-/// Plain, exact numbers in one soft panel: label left, value right.
+/// Home's short, friendly summary; the full table lives in Trends.
+struct SummaryPanel: View {
+    let stats: PoopStats
+    let commonType: BristolType?
+
+    var body: some View {
+        let interval = StatsFormat.interval(stats.averageIntervalDays)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionTitle("最近怎么样")
+            VStack(spacing: 0) {
+                StatRow(label: "近 7 天来了", value: "\(stats.last7DaysCount)", unit: "次")
+                Divider().overlay(Theme.line).padding(.leading, 16)
+                StatRow(label: "大概多久一次", value: interval.value, unit: interval.unit)
+                Divider().overlay(Theme.line).padding(.leading, 16)
+                CommonTypeRow(commonType: commonType)
+            }
+            .panel()
+        }
+    }
+}
+
+struct CommonTypeRow: View {
+    let commonType: BristolType?
+
+    var body: some View {
+        HStack {
+            Text("最常见的样子")
+                .foregroundStyle(Theme.ink)
+            Spacer()
+            if let commonType {
+                EntryBadge(type: commonType, size: 28)
+                Text("\(commonType.rawValue) 型 · \(commonType.name)")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(Theme.ink)
+            } else {
+                Text("—").foregroundStyle(Theme.inkSoft)
+            }
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 50)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Every number, plain and exact, in one soft panel: label left, value right.
 struct StatsPanel: View {
     let stats: PoopStats
     let commonType: BristolType?
@@ -414,32 +466,14 @@ struct StatsPanel: View {
             ("近 30 天", "\(stats.last30DaysCount)", "次"),
             ("一共记了", "\(stats.totalCount)", "次"),
         ]
-        VStack(alignment: .leading, spacing: 12) {
-            SectionTitle("我的小统计")
-            VStack(spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                    StatRow(label: row.0, value: row.1, unit: row.2)
-                    Divider().overlay(Theme.line).padding(.leading, 16)
-                }
-                HStack {
-                    Text("近 30 天最常见")
-                        .foregroundStyle(Theme.ink)
-                    Spacer()
-                    if let commonType {
-                        EntryBadge(type: commonType, size: 28)
-                        Text("\(commonType.rawValue) 型 · \(commonType.name)")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(Theme.ink)
-                    } else {
-                        Text("—").foregroundStyle(Theme.inkSoft)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .frame(minHeight: 50)
-                .accessibilityElement(children: .combine)
+        VStack(spacing: 0) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                StatRow(label: row.0, value: row.1, unit: row.2)
+                Divider().overlay(Theme.line).padding(.leading, 16)
             }
-            .panel()
+            CommonTypeRow(commonType: commonType)
         }
+        .panel()
     }
 }
 

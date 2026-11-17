@@ -53,6 +53,15 @@ enum BristolType: Int, CaseIterable, Identifiable, Codable {
         }
     }
 
+    /// Glyph color on the type's pale sticker; fixed because the sticker stays light in dark mode.
+    var stickerInk: Color {
+        switch self {
+        case .separateLumps, .lumpySausage: Theme.dryInk
+        case .crackedSausage, .smoothSnake, .softBlobs: Theme.idealInk
+        case .mushy, .watery: Theme.looseInk
+        }
+    }
+
     var group: String {
         switch self {
         case .separateLumps, .lumpySausage: "偏干"

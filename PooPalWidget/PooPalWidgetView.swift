@@ -41,7 +41,7 @@ struct PooPalWidgetView: View {
                         .opacity(0.7)
                 }
                 Spacer(minLength: 0)
-                PalBuddy(face: face, color: .white)
+                PalBuddy(face: face, color: .white, edgeColor: .white)
                     .frame(width: 40, height: 40)
             }
             Text(statusText)
@@ -58,7 +58,7 @@ struct PooPalWidgetView: View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) {
-                    PalBuddy(face: face, color: .white)
+                    PalBuddy(face: face, color: .white, edgeColor: .white)
                         .frame(width: 34, height: 34)
                     Logotype(color: Theme.onSunny)
                         .frame(height: 15)
@@ -103,7 +103,7 @@ struct PooPalWidgetView: View {
                         .font(.subheadline.weight(.heavy))
                 }
             }
-            .foregroundStyle(Theme.accent)
+            .foregroundStyle(Color(hex: 0x7A4BA0))
             .frame(maxWidth: .infinity, minHeight: family == .systemMedium ? 112 : 38)
             .background(
                 RoundedRectangle(cornerRadius: family == .systemMedium ? 26 : 19, style: .continuous)

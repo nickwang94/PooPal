@@ -81,11 +81,14 @@ struct EntryBadge: View {
         ZStack {
             Sticker(color: type?.paleTint ?? Theme.surfaceSunk, edge: max(1.5, size * 0.06))
             if let type {
-                BristolGlyph(type: type, color: type.tint)
+                BristolGlyph(type: type, color: type.stickerInk)
                     .padding(size * 0.2)
             } else {
                 Image(systemName: "checkmark")
-                    .font(.system(size: size * 0.38, weight: .semibold))
+                    .resizable()
+                    .scaledToFit()
+                    .fontWeight(.semibold)
+                    .padding(size * 0.3)
                     .foregroundStyle(Theme.inkSoft)
             }
         }
@@ -124,11 +127,11 @@ struct BristolPicker: View {
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: "questionmark")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.title3.weight(.semibold))
                     .frame(width: 34, height: 34)
-                Text("—")
-                    .font(.caption.weight(.bold))
                 Text("不确定")
+                    .font(.caption.weight(.bold))
+                Text("先跳过")
                     .font(.caption2)
                     .lineLimit(1)
             }
@@ -149,7 +152,7 @@ struct BristolPicker: View {
             selection = selected ? nil : type.rawValue
         } label: {
             VStack(spacing: 4) {
-                BristolGlyph(type: type, color: selected ? Theme.onAccent : type.tint)
+                BristolGlyph(type: type, color: selected ? Theme.onAccent : type.stickerInk)
                     .frame(width: 34, height: 34)
                 Text("\(type.rawValue)")
                     .font(.caption.weight(.bold).monospacedDigit())
@@ -158,7 +161,7 @@ struct BristolPicker: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
-            .foregroundStyle(selected ? Theme.onAccent : Theme.ink)
+            .foregroundStyle(selected ? Theme.onAccent : Theme.dayInk)
             .frame(maxWidth: .infinity, minHeight: 84)
             .background(Sticker(color: selected ? type.tint : type.paleTint, radius: 18, lifted: selected))
             .rotationEffect(.degrees(selected ? -3 : 0))

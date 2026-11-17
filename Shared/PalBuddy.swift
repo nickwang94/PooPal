@@ -21,6 +21,7 @@ struct PalBuddy: View {
     /// Changing this makes the buddy hop once.
     var hop = 0
     var color: Color = Theme.sunny
+    var edgeColor: Color = Theme.stickerEdge
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var blinking = false
@@ -32,7 +33,7 @@ struct PalBuddy: View {
             ZStack {
                 Ellipse()
                     .fill(color)
-                    .overlay(Ellipse().strokeBorder(Theme.stickerEdge, lineWidth: max(1.5, size * 0.045)))
+                    .overlay(Ellipse().strokeBorder(edgeColor, lineWidth: max(1.5, size * 0.045)))
                     .frame(width: size, height: size * 0.92)
                     .shadow(color: .black.opacity(0.12), radius: size * 0.04, y: size * 0.03)
                 faceCanvas(size: size)

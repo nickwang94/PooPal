@@ -30,16 +30,20 @@ enum Theme {
 
     // Bristol states and alerts
     static let dry = dynamic(light: 0xD9711F, dark: 0xF5A25A)
-    static let dryPale = dynamic(light: 0xFDE6D0, dark: 0x4A321F)
     static let ideal = dynamic(light: 0x3B8D5A, dark: 0x7CCB95)
-    static let idealPale = dynamic(light: 0xDDF1E2, dark: 0x23402D)
     static let loose = dynamic(light: 0x3A7FC6, dark: 0x86BDF2)
-    static let loosePale = dynamic(light: 0xDCEAF9, dark: 0x22354A)
+    // Sticker fills stay light in both appearances, with fixed deep glyph inks on them.
+    static let dryPale = dynamic(light: 0xFDE6D0, dark: 0xF2D6BC)
+    static let idealPale = dynamic(light: 0xDDF1E2, dark: 0xCBE6D3)
+    static let loosePale = dynamic(light: 0xDCEAF9, dark: 0xCCDDF1)
+    static let dryInk = Color(hex: 0xC2631A)
+    static let idealInk = Color(hex: 0x2F7A4B)
+    static let looseInk = Color(hex: 0x2F6DB0)
     static let alert = dynamic(light: 0xD23F5C, dark: 0xFF8098)
     static let blush = Color(hex: 0xFF8FA3)
 
     /// The white die-cut edge around a sticker.
-    static let stickerEdge = dynamic(light: 0xFFFFFF, dark: 0x4A3E52)
+    static let stickerEdge = dynamic(light: 0xFFFFFF, dark: 0xEDE3EA)
 
     static let radius: CGFloat = 24
     static let tileRadius: CGFloat = 12

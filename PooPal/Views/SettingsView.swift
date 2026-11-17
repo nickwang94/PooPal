@@ -82,7 +82,7 @@ struct SettingsView: View {
             Picker(selection: $appearance) {
                 ForEach(Appearance.allCases) { Text($0.title).tag($0) }
             } label: {
-                SettingLabel("外观", symbol: "circle.lefthalf.filled", color: Theme.accent)
+                SettingLabel("外观", symbol: "circle.lefthalf.filled", color: Color(hex: 0x7A4BA0))
             }
             .pickerStyle(.menu)
         } header: {
@@ -96,7 +96,7 @@ struct SettingsView: View {
     private var remindersSection: some View {
         Section {
             Toggle(isOn: $inactivityOn) {
-                SettingLabel("太久没来时提醒我", symbol: "bell.badge.fill", color: Theme.dry)
+                SettingLabel("太久没来时提醒我", symbol: "bell.badge.fill", color: Theme.dryInk)
             }
             if inactivityOn {
                 Stepper(value: $inactivityDays, in: 1...14) {
@@ -108,7 +108,7 @@ struct SettingsView: View {
                 }
             }
             Toggle(isOn: $dailyOn) {
-                SettingLabel("每天提醒我记一下", symbol: "alarm.fill", color: Theme.loose)
+                SettingLabel("每天提醒我记一下", symbol: "alarm.fill", color: Theme.looseInk)
             }
             if dailyOn {
                 DatePicker("提醒时间", selection: dailyTime, displayedComponents: .hourAndMinute)
@@ -159,7 +159,7 @@ struct SettingsView: View {
     private var backupSection: some View {
         Section {
             Toggle(isOn: $usePassword.animation()) {
-                SettingLabel("给备份加个密码", symbol: "lock.fill", color: Theme.inkSoft)
+                SettingLabel("给备份加个密码", symbol: "lock.fill", color: Color(hex: 0x7A6A7E))
             }
             if usePassword {
                 SecureField("设置密码（至少 4 位）", text: $password)
@@ -171,13 +171,13 @@ struct SettingsView: View {
                 }
             }
             Button(action: export) {
-                SettingLabel("导出备份", symbol: "square.and.arrow.up", color: Theme.ideal)
+                SettingLabel("导出备份", symbol: "square.and.arrow.up", color: Theme.idealInk)
             }
             .disabled(passwordProblem != nil)
             Button {
                 importing = true
             } label: {
-                SettingLabel("导入备份", symbol: "square.and.arrow.down", color: Theme.ideal)
+                SettingLabel("导入备份", symbol: "square.and.arrow.down", color: Theme.idealInk)
             }
         } header: {
             Text("备份")
@@ -258,6 +258,7 @@ struct SettingLabel: View {
     let title: String
     let symbol: String
     let color: Color
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 29
 
     init(_ title: String, symbol: String, color: Color) {
         self.title = title
@@ -270,9 +271,9 @@ struct SettingLabel: View {
             Text(title).foregroundStyle(Theme.ink)
         } icon: {
             Image(systemName: symbol)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Theme.onAccent)
-                .frame(width: 29, height: 29)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(width: iconSize, height: iconSize)
                 .background(Sticker(color: color, edge: 0, lifted: false))
         }
     }
