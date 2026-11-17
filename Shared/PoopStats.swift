@@ -168,19 +168,19 @@ enum PoopMood: Equatable {
     var title: String {
         switch self {
         case .noData: "还没有记录哦"
-        case .today: "今天已经顺畅啦！"
-        case .yesterday: "昨天便便过啦"
-        case .aWhile(let days), .tooLong(let days): "已经 \(days) 天没便便了"
+        case .today: "今天顺顺利利"
+        case .yesterday: "昨天来过啦"
+        case .aWhile(let days), .tooLong(let days): "已经 \(days) 天没来了"
         }
     }
 
     var message: String {
         switch self {
-        case .noData: "今天便便了吗？点一下大按钮记录吧～"
-        case .today: "肠道小伙伴给你点个赞"
-        case .yesterday: "今天也要多喝水哦"
-        case .aWhile: "吃点蔬菜水果，起来走一走吧"
-        case .tooLong: "多喝水、多吃膳食纤维；一直不舒服记得看医生哦"
+        case .noData: "第一次？点下面的大贴纸就记好啦"
+        case .today: "肠道小伙伴给你比个心"
+        case .yesterday: "今天也记得多喝水呀"
+        case .aWhile: "吃点蔬果，起来走走吧"
+        case .tooLong: "多喝水、多吃点膳食纤维；一直不舒服记得看医生哦"
         }
     }
 }

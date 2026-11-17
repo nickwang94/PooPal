@@ -124,6 +124,20 @@ final class PoopStatsTests: XCTestCase {
         XCTAssertEqual(StatsFormat.daysSince(3).value, "3")
     }
 
+    func testGreeting() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+        func at(_ hour: Int) -> Date {
+            calendar.date(from: DateComponents(year: 2026, month: 11, day: 17, hour: hour, minute: 30))!
+        }
+        XCTAssertEqual(DateText.greeting(at(7), calendar: calendar), "早上好")
+        XCTAssertEqual(DateText.greeting(at(12), calendar: calendar), "中午好")
+        XCTAssertEqual(DateText.greeting(at(15), calendar: calendar), "下午好")
+        XCTAssertEqual(DateText.greeting(at(20), calendar: calendar), "晚上好")
+        XCTAssertEqual(DateText.greeting(at(23), calendar: calendar), "夜深了")
+        XCTAssertEqual(DateText.greeting(at(3), calendar: calendar), "夜深了")
+    }
+
     func testElapsed() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         let hour: TimeInterval = 3600

@@ -34,7 +34,7 @@ struct TrendsView: View {
         let average = buckets.isEmpty ? 0 : Double(buckets.map(\.count).reduce(0, +)) / Double(buckets.count)
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                SectionTitle("次数")
+                SectionTitle("来了几次")
                 Spacer()
                 Picker("周期", selection: $period) {
                     ForEach(TrendPeriod.allCases) { Text($0.rawValue).tag($0) }
@@ -55,8 +55,8 @@ struct TrendsView: View {
                             y: .value("次数", bucket.count),
                             width: .ratio(0.62)
                         )
-                        .foregroundStyle(bucket.id == buckets.last?.id ? Theme.glaze : Theme.glazeLight)
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        .foregroundStyle(bucket.id == buckets.last?.id ? Theme.accent : Theme.accentSoft)
+                        .clipShape(Capsule())
                     }
                     RuleMark(y: .value("平均", average))
                         .foregroundStyle(Theme.inkSoft.opacity(0.6))
@@ -64,7 +64,7 @@ struct TrendsView: View {
                 }
                 .chartXAxis {
                     AxisMarks(values: .stride(by: period.component, count: 3)) { _ in
-                        AxisGridLine().foregroundStyle(Theme.grout)
+                        AxisGridLine().foregroundStyle(Theme.line)
                         AxisValueLabel(format: period == .week
                             ? .dateTime.month(.defaultDigits).day()
                             : .dateTime.month(.defaultDigits))
@@ -73,7 +73,7 @@ struct TrendsView: View {
                 }
                 .chartYAxis {
                     AxisMarks(position: .trailing) { _ in
-                        AxisGridLine().foregroundStyle(Theme.grout)
+                        AxisGridLine().foregroundStyle(Theme.line)
                         AxisValueLabel().foregroundStyle(Theme.inkSoft)
                     }
                 }
@@ -101,7 +101,7 @@ struct TrendsView: View {
         let total = distribution.values.reduce(0, +)
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                SectionTitle("近 30 天形态")
+                SectionTitle("近 30 天长什么样")
                 Spacer()
                 Text("\(total) 次有记录")
                     .font(.subheadline.monospacedDigit())
@@ -109,7 +109,7 @@ struct TrendsView: View {
             }
             VStack(alignment: .leading, spacing: 0) {
                 if total == 0 {
-                    Text("记录时选一下形态，这里就会出现分布。")
+                    Text("记的时候顺手选一下形态，这里就会画出来。")
                         .foregroundStyle(Theme.inkSoft)
                         .padding(16)
                 } else {
@@ -134,7 +134,7 @@ struct TrendsView: View {
                                             .frame(width: max(count == 0 ? 0 : 6, proxy.size.width * CGFloat(count) / CGFloat(max(total, 1))))
                                     }
                                 }
-                                .frame(height: 6)
+                                .frame(height: 8)
                             }
                         }
                         .padding(.horizontal, 16)

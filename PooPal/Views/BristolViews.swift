@@ -47,10 +47,10 @@ struct BristolGlyph: View {
                 context.fill(ellipse(0.5, 0.64, 0.2, 0.14), with: ink)
             case .mushy:
                 var blob = Path()
-                let points = 18
+                let points = 60
                 for i in 0...points {
                     let angle = Double(i) / Double(points) * 2 * .pi
-                    let radius = i.isMultiple(of: 2) ? 0.34 : 0.28
+                    let radius = 0.31 + 0.035 * sin(angle * 5)
                     let point = p(0.5 + radius * cos(angle), 0.54 + radius * 0.72 * sin(angle))
                     if i == 0 { blob.move(to: point) } else { blob.addLine(to: point) }
                 }
@@ -72,17 +72,17 @@ struct BristolGlyph: View {
     }
 }
 
-/// Small tile for an entry: its Bristol glyph on the type's pale tint, or an empty tile when unrecorded.
+/// Round sticker for an entry: its Bristol glyph on the type's pale tint, or a check when unrecorded.
 struct EntryBadge: View {
     let type: BristolType?
     var size: CGFloat = 36
 
     var body: some View {
         ZStack {
-            GlazeTile(color: type?.paleTint ?? Theme.surfaceSunk, radius: size * 0.26)
+            Sticker(color: type?.paleTint ?? Theme.surfaceSunk, edge: max(1.5, size * 0.06))
             if let type {
                 BristolGlyph(type: type, color: type.tint)
-                    .padding(size * 0.14)
+                    .padding(size * 0.2)
             } else {
                 Image(systemName: "checkmark")
                     .font(.system(size: size * 0.38, weight: .semibold))
@@ -113,7 +113,7 @@ struct BristolPicker: View {
                     .foregroundStyle(Theme.inkSoft)
             }
         }
-        .animation(.snappy, value: selection)
+        .animation(.spring(response: 0.3, dampingFraction: 0.55), value: selection)
         .sensoryFeedback(.selection, trigger: selection)
     }
 
@@ -132,9 +132,11 @@ struct BristolPicker: View {
                     .font(.caption2)
                     .lineLimit(1)
             }
-            .foregroundStyle(selected ? Theme.onGlaze : Theme.inkSoft)
+            .foregroundStyle(selected ? Theme.accent : Theme.inkSoft)
             .frame(maxWidth: .infinity, minHeight: 84)
-            .background(GlazeTile(color: selected ? Theme.glaze : Theme.surfaceSunk, radius: 12))
+            .background(Sticker(color: selected ? Theme.accentPale : Theme.surfaceSunk, radius: 18, lifted: selected))
+            .rotationEffect(.degrees(selected ? -3 : 0))
+            .scaleEffect(selected ? 1.04 : 1)
         }
         .buttonStyle(PressableStyle())
         .accessibilityLabel("不确定形态")
@@ -147,7 +149,7 @@ struct BristolPicker: View {
             selection = selected ? nil : type.rawValue
         } label: {
             VStack(spacing: 4) {
-                BristolGlyph(type: type, color: selected ? Theme.onGlaze : type.tint)
+                BristolGlyph(type: type, color: selected ? Theme.onAccent : type.tint)
                     .frame(width: 34, height: 34)
                 Text("\(type.rawValue)")
                     .font(.caption.weight(.bold).monospacedDigit())
@@ -156,23 +158,25 @@ struct BristolPicker: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
-            .foregroundStyle(selected ? Theme.onGlaze : Theme.ink)
+            .foregroundStyle(selected ? Theme.onAccent : Theme.ink)
             .frame(maxWidth: .infinity, minHeight: 84)
-            .background(GlazeTile(color: selected ? type.tint : type.paleTint, radius: 12))
+            .background(Sticker(color: selected ? type.tint : type.paleTint, radius: 18, lifted: selected))
+            .rotationEffect(.degrees(selected ? -3 : 0))
+            .scaleEffect(selected ? 1.04 : 1)
         }
         .buttonStyle(PressableStyle())
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
-/// Native-feeling press: slight scale-down, springs back.
+/// Squishy press: scales down, springs back with a little bounce.
 struct PressableStyle: ButtonStyle {
     var scale: CGFloat = 0.96
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? scale : 1)
-            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
+            .animation(.spring(response: 0.28, dampingFraction: 0.5), value: configuration.isPressed)
     }
 }
 

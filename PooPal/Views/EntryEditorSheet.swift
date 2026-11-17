@@ -45,21 +45,21 @@ struct EntryEditorSheet: View {
                     BristolPicker(selection: $bristolType)
                         .padding(.vertical, 6)
                 } header: {
-                    Text("形态 · 布里斯托分类")
+                    Text("长什么样？· 布里斯托分类")
                 }
                 .listRowBackground(Theme.surface)
 
                 Section {
-                    TextField("比如：昨晚吃了火锅、有点肚子痛", text: $note, axis: .vertical)
+                    TextField("比如：昨晚吃了火锅，有点肚子痛", text: $note, axis: .vertical)
                         .lineLimit(2...5)
                 } header: {
-                    Text("备注")
+                    Text("想说点什么")
                 }
                 .listRowBackground(Theme.surface)
 
                 if isEditing {
                     Section {
-                        Button("删除这条记录", role: .destructive) { confirmingDelete = true }
+                        Button("删掉这一条", role: .destructive) { confirmingDelete = true }
                     }
                     .listRowBackground(Theme.surface)
                 }
@@ -67,22 +67,23 @@ struct EntryEditorSheet: View {
             .scrollContentBackground(.hidden)
             .background(Theme.ground)
             .scrollDismissesKeyboard(.interactively)
-            .navigationTitle(isEditing ? "编辑记录" : "补记一次")
+            .fontDesign(.rounded)
+            .navigationTitle(isEditing ? "改一改" : "补一条")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isEditing ? "保存" : "记录") { save() }
+                    Button(isEditing ? "保存" : "记好了") { save() }
                         .fontWeight(.semibold)
                 }
             }
-            .confirmationDialog("删除后不能恢复", isPresented: $confirmingDelete, titleVisibility: .visible) {
+            .confirmationDialog("删掉就找不回来了哦", isPresented: $confirmingDelete, titleVisibility: .visible) {
                 Button("删除", role: .destructive) { delete() }
             }
         }
-        .tint(Theme.glaze)
+        .tint(Theme.accent)
     }
 
     private func quickChip(_ title: String, date makeDate: @escaping () -> Date?) -> some View {

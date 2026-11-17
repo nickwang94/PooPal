@@ -3,52 +3,61 @@ import SwiftUI
 import UIKit
 #endif
 
-/// Design tokens: porcelain ground, glaze-teal tiles. Every color adapts to light and dark.
+/// Design tokens: a sticker habit journal. Warm-milk ground, sunny marigold brand field,
+/// plum ink and tint. Every color adapts to light and dark.
 enum Theme {
     // Ground and surfaces
-    static let ground = dynamic(light: 0xF2F5F4, dark: 0x0A1413)
-    static let surface = dynamic(light: 0xFFFFFF, dark: 0x13201E)
-    static let surfaceSunk = dynamic(light: 0xE6EDEB, dark: 0x1B2B29)
-    static let grout = dynamic(light: 0xD6E0DE, dark: 0x263A37)
+    static let ground = dynamic(light: 0xFFF8F0, dark: 0x1C1620)
+    static let surface = dynamic(light: 0xFFFFFF, dark: 0x2A2230)
+    static let surfaceSunk = dynamic(light: 0xF6ECE1, dark: 0x352B3B)
+    static let line = dynamic(light: 0xEDE1D5, dark: 0x41364A)
 
     // Text
-    static let ink = dynamic(light: 0x0E1E1C, dark: 0xE4EFED)
-    static let inkSoft = dynamic(light: 0x4A5E5B, dark: 0x9BB2AE)
+    static let ink = dynamic(light: 0x3A2A3E, dark: 0xF7EEE6)
+    static let inkSoft = dynamic(light: 0x7A6A7E, dark: 0xB9A9BD)
 
-    // Glaze (brand + primary action + data)
-    static let glaze = dynamic(light: 0x0F5F59, dark: 0x2F9A8F)
-    static let glazeDeep = dynamic(light: 0x0A4642, dark: 0x1E6E66)
-    static let glazeLight = dynamic(light: 0x6DB3AA, dark: 0x2A7A72)
-    static let glazePale = dynamic(light: 0xC4E2DD, dark: 0x1D4743)
-    static let onGlaze = Color(hex: 0xF3FBF9)
+    // Plum: interactive tint
+    static let accent = dynamic(light: 0x7A4BA0, dark: 0xC59BEA)
+    static let accentSoft = dynamic(light: 0xD6C3E8, dark: 0x5A4470)
+    static let accentPale = dynamic(light: 0xF1E8F8, dark: 0x3A2E48)
+    static let onAccent = dynamic(light: 0xFFFFFF, dark: 0x241A2B)
 
-    // Primary action fill; dimmer in dark so it does not glare at night.
-    static let actionTop = dynamic(light: 0x0F5F59, dark: 0x1C6B63)
-    static let actionBottom = dynamic(light: 0x0A4642, dark: 0x0F4541)
+    // Sunny marigold: brand field and the log sticker
+    static let sunny = dynamic(light: 0xFFC83D, dark: 0xF5B83A)
+    static let sunnyDeep = dynamic(light: 0xF6AE22, dark: 0xD99A22)
+    static let sunnyPale = dynamic(light: 0xFFEDC0, dark: 0x4A3A22)
+    static let onSunny = Color(hex: 0x3A2440)
 
-    // Mosaic levels: lightness steps monotonically toward "more" in each appearance.
-    static let mosaic1 = dynamic(light: 0xA8D5CE, dark: 0x1B4A45)
-    static let mosaic2 = dynamic(light: 0x3E8C83, dark: 0x2A7F76)
-    static let mosaic3 = dynamic(light: 0x0A4642, dark: 0x52C4B6)
-    static let mosaicInk1 = dynamic(light: 0x0A4642, dark: 0xCDEBE6)
-    static let mosaicInk3 = dynamic(light: 0xF3FBF9, dark: 0x062220)
+    // Bristol states and alerts
+    static let dry = dynamic(light: 0xD9711F, dark: 0xF5A25A)
+    static let dryPale = dynamic(light: 0xFDE6D0, dark: 0x4A321F)
+    static let ideal = dynamic(light: 0x3B8D5A, dark: 0x7CCB95)
+    static let idealPale = dynamic(light: 0xDDF1E2, dark: 0x23402D)
+    static let loose = dynamic(light: 0x3A7FC6, dark: 0x86BDF2)
+    static let loosePale = dynamic(light: 0xDCEAF9, dark: 0x22354A)
+    static let alert = dynamic(light: 0xD23F5C, dark: 0xFF8098)
+    static let blush = Color(hex: 0xFF8FA3)
 
-    // States (Bristol dry / loose)
-    static let amber = dynamic(light: 0xC27A1E, dark: 0xE9A956)
-    static let amberPale = dynamic(light: 0xF6E2C4, dark: 0x3F2E16)
-    static let coral = dynamic(light: 0xC2513D, dark: 0xEE8A75)
-    static let coralPale = dynamic(light: 0xF6D6CF, dark: 0x45231D)
+    /// The white die-cut edge around a sticker.
+    static let stickerEdge = dynamic(light: 0xFFFFFF, dark: 0x4A3E52)
 
-    static let radius: CGFloat = 20
-    static let tileRadius: CGFloat = 8
+    static let radius: CGFloat = 24
+    static let tileRadius: CGFloat = 12
 
-    /// Mosaic shade for a day with `count` entries.
+    // Day stickers stay bright in both appearances (real stickers do); saturation and warmth
+    // step up toward "more": pale butter, marigold, tangerine. Never darkened into brown.
+    static let day1 = dynamic(light: 0xFFE7A6, dark: 0xEBD7A2)
+    static let day2 = dynamic(light: 0xFFC83D, dark: 0xF2B53A)
+    static let day3 = dynamic(light: 0xF29A2E, dark: 0xEE8F2A)
+    static let dayInk = Color(hex: 0x3A2440)
+
+    /// Sticker color for a day with `count` entries.
     static func tile(for count: Int) -> Color {
         switch count {
         case 0: surfaceSunk
-        case 1: mosaic1
-        case 2: mosaic2
-        default: mosaic3
+        case 1: day1
+        case 2: day2
+        default: day3
         }
     }
 
@@ -56,9 +65,7 @@ enum Theme {
     static func tileInk(for count: Int) -> Color {
         switch count {
         case 0: inkSoft
-        case 1: mosaicInk1
-        case 2: onGlaze
-        default: mosaicInk3
+        default: dayInk
         }
     }
 
@@ -94,17 +101,16 @@ extension UIColor {
 }
 #endif
 
-/// Grouped container: one surface with hairline separators between rows (not a card per item).
+/// Soft grouped container: one rounded surface, rows separated by inset hairlines.
 struct PanelStyle: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
     func body(content: Content) -> some View {
         content
             .background(
                 RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
                     .fill(Theme.surface)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
-                    .strokeBorder(Theme.grout.opacity(0.6), lineWidth: 0.5)
+                    .shadow(color: Color(hex: 0x5A3A2A).opacity(colorScheme == .dark ? 0 : 0.07), radius: 14, x: 0, y: 6)
             )
     }
 }
@@ -113,19 +119,26 @@ extension View {
     func panel() -> some View { modifier(PanelStyle()) }
 }
 
-/// A glazed tile: rounded square with a soft top highlight.
-struct GlazeTile: View {
-    var color: Color = Theme.glaze
-    var radius: CGFloat = Theme.tileRadius
+/// A die-cut sticker: colored shape with a white edge and a soft lift shadow.
+/// `radius == nil` makes it round.
+struct Sticker: View {
+    var color: Color = Theme.sunny
+    var radius: CGFloat? = nil
+    var edge: CGFloat = 2.5
+    var lifted = true
 
     var body: some View {
-        RoundedRectangle(cornerRadius: radius, style: .continuous)
-            .fill(color)
-            .overlay(
+        Group {
+            if let radius {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .fill(LinearGradient(colors: [.white.opacity(0.22), .clear], startPoint: .top, endPoint: .center))
-                    .padding(1)
-            )
-            .shadow(color: .black.opacity(0.10), radius: 1.5, x: 0, y: 1)
+                    .fill(color)
+                    .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).strokeBorder(Theme.stickerEdge, lineWidth: edge))
+            } else {
+                Circle()
+                    .fill(color)
+                    .overlay(Circle().strokeBorder(Theme.stickerEdge, lineWidth: edge))
+            }
+        }
+        .shadow(color: .black.opacity(lifted ? 0.12 : 0), radius: 2.5, x: 0, y: 1.5)
     }
 }

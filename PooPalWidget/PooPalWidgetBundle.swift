@@ -16,14 +16,11 @@ struct PooPalWidget: Widget {
         StaticConfiguration(kind: Self.kind, provider: PoopTimelineProvider()) { entry in
             PooPalWidgetView(entry: entry)
                 .containerBackground(for: .widget) {
-                    ZStack {
-                        LinearGradient(colors: [Theme.glaze, Theme.glazeDeep], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        RadialGradient(colors: [.white.opacity(0.14), .clear], center: .topLeading, startRadius: 0, endRadius: 220)
-                    }
+                    LinearGradient(colors: [Theme.sunny, Theme.sunnyDeep], startPoint: .top, endPoint: .bottom)
                 }
         }
         .configurationDisplayName("PooPal 一键记录")
-        .description("在桌面点一下就能记录便便，还能看到今天的次数。")
+        .description("在桌面点一下就记好，还能看看今天来了几次。")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

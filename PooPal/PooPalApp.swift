@@ -61,10 +61,11 @@ struct ContentView: View {
                 .tag(Tab.home)
             HistoryView()
                 .id(refreshToken)
-                .tabItem { Label("记录", systemImage: "square.grid.3x3.fill") }
+                .tabItem { Label("贴纸本", systemImage: "circle.grid.3x3.fill") }
                 .tag(Tab.history)
         }
-        .tint(Theme.glaze)
+        .tint(Theme.accent)
+        .fontDesign(.rounded)
         .preferredColorScheme(appearance.colorScheme)
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, !PooPalApp.usesInMemoryStore else { return }

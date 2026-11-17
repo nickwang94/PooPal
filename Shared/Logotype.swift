@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// The PooPal lettering mark: geometric monoline letters built from one stroke weight,
-/// so the "o" rings and the bowls of the "P"s share the same circle.
+/// The PooPal lettering mark: rounded monoline letters built from one stroke weight,
+/// so the "o" rings and the bowls of the "P"s share the same circle. With `eyes`,
+/// the two "o"s of "Poo" get pupils and the mark looks back at you.
 struct Logotype: View {
     enum Layout {
         case line
@@ -10,13 +11,15 @@ struct Logotype: View {
     }
 
     var layout: Layout = .line
-    var color: Color = Theme.glaze
+    var color: Color = Theme.accent
+    var eyes = false
+    var eyeColor: Color? = nil
 
-    private static let stroke: CGFloat = 0.25
+    private static let stroke: CGFloat = 0.28
     private static let cap: CGFloat = 1.40
     private static let xHeight: CGFloat = 1.0
     private static let bowl: CGFloat = 0.96
-    private static let gap: CGFloat = 0.15
+    private static let gap: CGFloat = 0.17
     private static let leading: CGFloat = 0.34
 
     private enum Letter { case P, o, a, l }
@@ -50,12 +53,19 @@ struct Logotype: View {
         Canvas { context, canvasSize in
             let s = min(canvasSize.width / size.width, canvasSize.height / size.height)
             var path = Path()
+            var pupils = Path()
             switch layout {
             case .line:
                 var x: CGFloat = 0
                 for (index, letter) in (Self.first + Self.second).enumerated() {
                     if index == 3 { x += Self.gap * 0.4 }
                     Self.add(letter, at: CGPoint(x: x, y: 0), scale: s, to: &path)
+                    if eyes, index == 1 || index == 2 {
+                        let r = Self.stroke * 0.46
+                        let cx = x + Self.xHeight / 2 + 0.06
+                        let cy = Self.cap - Self.xHeight / 2 - 0.04
+                        pupils.addEllipse(in: CGRect(x: (cx - r) * s, y: (cy - r) * s, width: 2 * r * s, height: 2 * r * s))
+                    }
                     x += Self.width(letter) + Self.gap
                 }
             case .stacked:
@@ -68,7 +78,8 @@ struct Logotype: View {
                     }
                 }
             }
-            context.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: Self.stroke * s, lineCap: .butt))
+            context.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: Self.stroke * s, lineCap: .round, lineJoin: .round))
+            context.fill(pupils, with: .color(eyeColor ?? color))
         }
         .aspectRatio(size.width / size.height, contentMode: .fit)
         .accessibilityElement()
@@ -87,8 +98,8 @@ struct Logotype: View {
         }
         switch letter {
         case .P:
-            stem(w / 2, from: 0, to: cap)
             let r = (bowl - w) / 2
+            stem(w / 2, from: w / 2 + r, to: cap - w / 2)
             ring(w / 2 + r, w / 2 + r, r)
         case .o:
             let r = (xHeight - w) / 2
@@ -96,9 +107,9 @@ struct Logotype: View {
         case .a:
             let r = (xHeight - w) / 2
             ring(xHeight / 2, cap - xHeight / 2, r)
-            stem(xHeight - w / 2, from: cap - xHeight, to: cap)
+            stem(xHeight - w / 2, from: cap - xHeight / 2, to: cap - w / 2)
         case .l:
-            stem(w / 2, from: 0, to: cap)
+            stem(w / 2, from: w / 2, to: cap - w / 2)
         }
     }
 }
@@ -107,9 +118,9 @@ struct Logotype: View {
     VStack(spacing: 40) {
         Logotype()
             .frame(height: 40)
-        Logotype(layout: .stacked, color: Theme.onGlaze)
-            .frame(width: 200)
+        Logotype(color: Theme.onSunny, eyes: true)
+            .frame(width: 240)
             .padding(40)
-            .background(Theme.glaze)
+            .background(Theme.sunny)
     }
 }

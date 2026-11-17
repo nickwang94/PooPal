@@ -40,7 +40,7 @@ struct HistoryView: View {
                 }
             }
             .background(Theme.ground.ignoresSafeArea())
-            .navigationTitle("记录")
+            .navigationTitle("我的贴纸本")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !entries.isEmpty {
@@ -58,7 +58,7 @@ struct HistoryView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .accessibilityLabel("补记一次")
+                    .accessibilityLabel("补一条")
                 }
             }
             .sheet(isPresented: $showingAddSheet) { EntryEditorSheet() }
@@ -95,9 +95,9 @@ struct HistoryView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("还没有记录", systemImage: "square.grid.3x3")
+            Label("还没有贴纸呢", systemImage: "circle.grid.3x3.fill")
         } description: {
-            Text("在首页点「记一次」，或右上角补记过去的一次。")
+            Text("去首页点一下「记一下」，或者点右上角补一条之前的。")
         }
         .foregroundStyle(Theme.ink)
     }
@@ -136,7 +136,7 @@ struct EntryRowContent: View {
                         .foregroundStyle(Theme.inkSoft)
                         .lineLimit(2)
                 } else if entry.bristol == nil {
-                    Text("点一下补充形态和备注")
+                    Text("点一下，补上形态和小备注")
                         .font(.subheadline)
                         .foregroundStyle(Theme.inkSoft)
                 }
@@ -181,7 +181,7 @@ struct CalendarPage: View {
 
             Section {
                 if selectedEntries.isEmpty {
-                    Text("这天没有记录")
+                    Text("这天没有贴纸")
                         .foregroundStyle(Theme.inkSoft)
                 } else {
                     ForEach(selectedEntries) { entry in
@@ -196,7 +196,7 @@ struct CalendarPage: View {
                 Text("\(DateText.dayTitle(selectedDay)) · \(selectedEntries.count) 次")
             } footer: {
                 if !selectedEntries.isEmpty {
-                    Text("点一条可以编辑，向左滑动可以删除。")
+                    Text("点一条可以改，往左滑可以删。")
                 }
             }
             .listRowBackground(Theme.surface)
@@ -286,7 +286,7 @@ struct MonthMosaic: View {
             HStack(spacing: 6) {
                 Text("少").font(.caption2).foregroundStyle(Theme.inkSoft)
                 ForEach(0..<4) { count in
-                    GlazeTile(color: Theme.tile(for: count), radius: 3).frame(width: 12, height: 12)
+                    Sticker(color: Theme.tile(for: count), edge: 1.5, lifted: false).frame(width: 14, height: 14)
                 }
                 Text("多").font(.caption2).foregroundStyle(Theme.inkSoft)
                 Spacer()
@@ -310,27 +310,22 @@ struct DayTile: View {
     let isFuture: Bool
 
     var body: some View {
-        let filled = count > 0
-        ZStack(alignment: .topLeading) {
-            GlazeTile(color: isFuture ? Theme.surfaceSunk.opacity(0.45) : Theme.tile(for: count), radius: 8)
+        DaySticker(count: count, isFuture: isFuture, isToday: isToday && !isSelected, isSelected: isSelected) {
             Text("\(Calendar.current.component(.day, from: day))")
-                .font(.caption2.weight(isToday ? .heavy : .medium).monospacedDigit())
-                .foregroundStyle(isFuture ? Theme.inkSoft.opacity(0.5) : Theme.tileInk(for: count))
-                .padding(5)
+                .font(.footnote.weight(isToday ? .heavy : .semibold).monospacedDigit())
+                .foregroundStyle(isFuture ? Theme.inkSoft.opacity(0.6) : Theme.tileInk(for: count))
+        }
+        .overlay(alignment: .topTrailing) {
             if count > 1 {
-                Text("×\(count)")
-                    .font(.caption2.weight(.bold).monospacedDigit())
-                    .foregroundStyle(Theme.tileInk(for: count))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                    .padding(4)
+                Text("\(count)")
+                    .font(.caption2.weight(.heavy).monospacedDigit())
+                    .foregroundStyle(Theme.onAccent)
+                    .frame(minWidth: 16, minHeight: 16)
+                    .background(Circle().fill(Theme.accent))
+                    .offset(x: 3, y: -3)
             }
         }
-        .aspectRatio(1, contentMode: .fit)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(isSelected ? Theme.glaze : (isToday ? Theme.glaze.opacity(0.45) : .clear), lineWidth: isSelected ? 2 : 1.5)
-                .padding(-2.5)
-        )
+        .padding(2)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(DateText.dayTitle(day))，\(count) 次")

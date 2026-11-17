@@ -26,30 +26,30 @@ enum BristolType: Int, CaseIterable, Identifiable, Codable {
 
     var hint: String {
         switch self {
-        case .separateLumps: "一颗颗硬硬的，可能有点便秘"
+        case .separateLumps: "一颗颗硬硬的，可能有点便秘了"
         case .lumpySausage: "成条但疙疙瘩瘩，偏干"
-        case .crackedSausage: "成条有裂纹，挺正常"
-        case .smoothSnake: "光滑柔软，最理想"
+        case .crackedSausage: "成条有点裂纹，挺好的"
+        case .smoothSnake: "光滑柔软，完美！"
         case .softBlobs: "软软的小团，边缘清楚"
         case .mushy: "糊糊的，有点稀"
-        case .watery: "水样，注意补水哦"
+        case .watery: "水水的，记得多补水哦"
         }
     }
 
-    /// Strong color: dry types amber, normal types glaze, loose types coral.
+    /// Strong color: dry types tangerine, normal types leaf, loose types sky.
     var tint: Color {
         switch self {
-        case .separateLumps, .lumpySausage: Theme.amber
-        case .crackedSausage, .smoothSnake, .softBlobs: Theme.glaze
-        case .mushy, .watery: Theme.coral
+        case .separateLumps, .lumpySausage: Theme.dry
+        case .crackedSausage, .smoothSnake, .softBlobs: Theme.ideal
+        case .mushy, .watery: Theme.loose
         }
     }
 
     var paleTint: Color {
         switch self {
-        case .separateLumps, .lumpySausage: Theme.amberPale
-        case .crackedSausage, .smoothSnake, .softBlobs: Theme.glazePale
-        case .mushy, .watery: Theme.coralPale
+        case .separateLumps, .lumpySausage: Theme.dryPale
+        case .crackedSausage, .smoothSnake, .softBlobs: Theme.idealPale
+        case .mushy, .watery: Theme.loosePale
         }
     }
 
