@@ -130,13 +130,15 @@ components:
 
 # PooPal design system
 
-Source of truth:
-- `Shared/Theme.swift`: tokens, `Sticker`, and `.panel()`.
-- `Shared/Logotype.swift`: the wordmark.
-- `Shared/PalBuddy.swift`: the buddy character.
-- `Shared/BristolType.swift`: the state colors.
+Source of truth (web app; the original SwiftUI version lives on the `ios-archive` branch):
+- `src/styles.css`: tokens as CSS custom properties, stickers, panels, controls.
+- `src/logic/logotype.ts` + `src/components/Logotype.tsx`: the wordmark (also drives the app icon via `scripts/render-icons.mjs`).
+- `src/components/PalBuddy.tsx`: the buddy character.
+- `src/components/Bristol.tsx`, `src/components/colors.ts`: Bristol glyphs, picker and state colors.
 
-Every color is a light/dark pair built with `Theme.dynamic(light:dark:)`. The `-dark` keys above are the dark halves of the same token, not separate tokens.
+Every color is a light/dark pair: `:root` holds the light half and `:root[data-theme='dark']` the dark half. The `-dark` keys above are the dark halves of the same token, not separate tokens.
+
+Web notes: point sizes below map 1:1 to CSS px. "SF Pro Rounded" is `ui-rounded` on Apple devices with a bundled Nunito (Latin only) fallback elsewhere; Chinese uses the system font. Native controls become web equivalents with the same shapes: segmented controls, switches, a stepper, and date/time pills that open the system picker.
 
 ## Overview
 
@@ -144,24 +146,24 @@ PooPal is a sticker habit journal (手帐) for one person's gut. It is warm, sof
 
 - Every visit is a round die-cut sticker pressed onto the day.
 - A small round marigold buddy, the "Pal", greets you, and its face follows how you're doing.
-- It is native iOS in Operate mode: system navigation, forms, pickers and Dynamic Type everywhere.
+- It is a mobile-first web app (PWA) in Operate mode, shaped like native iOS: grouped forms, bottom sheets, a floating tab bar.
 - Personality lives in color, stickers, the buddy, the wordmark, copy and motion.
 
 It refuses two looks: the clinical health dashboard (teal, stat-card grids, a business tone) and the cartoon-poop kids' app. The buddy is abstract and never poop-shaped, and there is no emoji anywhere.
 
-Light and dark are both first-class. Users pick 跟随系统 / 浅色 / 深色 in 设置 › 看起来 › 外观 (`Appearance`, stored under `appearance`), applied with `preferredColorScheme` at the root.
+Light and dark are both first-class. Users pick 跟随系统 / 浅色 / 深色 in 设置 › 看起来 › 外观 (stored in localStorage under `poopal.appearance`), applied as `data-theme` on `<html>` before first paint by `public/theme-init.js`.
 
 ## Colors
 
 - **Ground and surfaces.** `ground` is a warm milk in light mode and a plum-black in dark. `surface` holds grouped content; `surface-sunk` marks an empty past day; `line` is the hairline between rows.
-- **Sunny marigold** is the brand field: the log sticker, the buddy, the widget and the icon. Text on marigold always uses `on-sunny` (deep plum), never white.
+- **Sunny marigold** is the brand field: the log sticker, the buddy and the icon. Text on marigold always uses `on-sunny` (deep plum), never white.
 - **Plum** (`accent`) is the one interactive tint: controls, today and selected rings, the count numeral, the current chart bar, links in the toast.
 - **Day stickers** (`day-1` to `day-3`) step from pale butter to marigold to tangerine as the count rises. They stay bright in dark mode, because real stickers do, and they are never darkened into brown. Numerals on them are always `day-ink`.
 - **Bristol states:** tangerine `dry` (types 1–2), leaf `ideal` (types 3–5) and sky `loose` (types 6–7), each with a pale tint for its sticker. Pale tints stay light in dark mode (stickers are paper), and glyphs on them use the fixed deep `*-ink` shades. `alert` (rose) is only for undo, delete and warnings.
 
 ## Typography
 
-SF Pro Rounded everywhere, set once with `.fontDesign(.rounded)` at the app root, each sheet root and the widget. Only Dynamic Type text styles are used. Numbers use `.monospacedDigit()`. The primary action ("记一下") is heavy, and section titles are bold. The `Logotype` wordmark is the only display voice.
+SF Pro Rounded everywhere (`--font` on `body`), with the iOS text-style sizes in px: large title 34, title 28, title3 20, body 17, subheadline 15, footnote 13, caption 12/11. Numbers use `font-variant-numeric: tabular-nums` (`.num`). The primary action ("记一下") is heavy, and section titles are bold. The `Logotype` wordmark is the only display voice.
 
 ## Layout
 
@@ -195,14 +197,14 @@ SF Pro Rounded everywhere, set once with `.fontDesign(.rounded)` at the app root
   - **Motion:** it blinks every few seconds and hops when you log. Both are off under Reduce Motion.
 - **LogStickerButton:** squishes when pressed (scale 0.95, bouncy spring).
   - Today's visits show as overlapping tilted entry stickers (up to 5, then "+N") in the top corner. Logging adds one and bursts 12 confetti dots in the state colors.
-  - The buddy hops and success haptics play. Confetti is skipped under Reduce Motion.
+  - The buddy hops and the phone vibrates briefly where the browser allows it (not on iOS). Confetti is skipped under `prefers-reduced-motion`.
 - **WeekStickers / MonthMosaic / DaySticker:** each day is a round sticker.
   - Future days are dashed slots, and empty past days are flat sunk circles.
   - Today and the selected day get a plum ring.
   - On the calendar, days with more than one visit get a plum count badge.
 - **BristolPicker:** a 4×2 grid of the seven types plus 不确定. A selected sticker fills with its state tint, lifts, tilts and scales up with a spring.
 - **Toast:** a material capsule reading "记好啦 · HH:mm", with 加点细节 and 撤销.
-- **Widget:** a marigold background with the buddy and counts in plum, plus a white "记一下" button with a fixed plum label that runs `LogPoopIntent`.
+- **Tab bar:** a floating frosted capsule with 今天 and 贴纸本; the active tab sits on a soft pill in plum.
 
 ## Voice
 
@@ -210,7 +212,7 @@ Casual and warm, like a friend checking in, for example "记一下", "忘了记�
 
 ## Do's and Don'ts
 
-- Do use native `Form`, `List`, `Picker`, `Stepper`, `DatePicker` and segmented controls, tinted plum.
+- Do keep the iOS shapes on the web: grouped rows in soft panels, switches, a stepper, segmented controls and date/time pills that open the system picker, tinted plum.
 - Do keep touch targets at 44pt minimum.
 - Do respect Reduce Motion: no blink, hop or confetti.
 - Don't use emoji, poop shapes, or white text on marigold.
