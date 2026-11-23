@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD45E"/><stop offset=".5" stop-color="#FFC23A"/><stop offset="1" stop-color="#F7A91F"/>
+    </linearGradient>
+    <radialGradient id="h" cx="307" cy="154" r="620" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#g)"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#h)"/>
+  <g transform="translate(62 417.02517162471395) scale(147.10689767898006)">
+    <path d="M0.14 0.48L0.14 1.2599999999999998M0.14 0.48a0.33999999999999997 0.33999999999999997 0 1 0 0.6799999999999999 0a0.33999999999999997 0.33999999999999997 0 1 0 -0.6799999999999999 0M1.27 0.8999999999999999a0.36 0.36 0 1 0 0.72 0a0.36 0.36 0 1 0 -0.72 0M2.44 0.8999999999999999a0.36 0.36 0 1 0 0.72 0a0.36 0.36 0 1 0 -0.72 0M3.678 0.48L3.678 1.2599999999999998M3.678 0.48a0.33999999999999997 0.33999999999999997 0 1 0 0.6799999999999999 0a0.33999999999999997 0.33999999999999997 0 1 0 -0.6799999999999999 0M4.807999999999999 0.8999999999999999a0.36 0.36 0 1 0 0.72 0a0.36 0.36 0 1 0 -0.72 0M5.528 0.8999999999999999L5.528 1.2599999999999998M5.977999999999999 0.14L5.977999999999999 1.2599999999999998" fill="none" stroke="#4A2A63" stroke-width="0.28" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="1.69" cy="0.8599999999999999" r="0.12880000000000003" fill="#4A2A63"/><circle cx="2.86" cy="0.8599999999999999" r="0.12880000000000003" fill="#4A2A63"/>
+  </g>
+</svg>

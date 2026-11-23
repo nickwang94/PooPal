@@ -1,23 +1,14 @@
 # macOS
 .DS_Store
 
-# Xcode
-build/
-DerivedData/
-*.xcuserstate
-xcuserdata/
-*.xcscmblueprint
-*.xccheckout
-*.moved-aside
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-# Swift Package Manager
-.build/
-.swiftpm/
+# Node
+node_modules/
+dist/
+dev-dist/
+*.log
+.vite/
 
 # Local tooling output
-scripts/.out/
 screenshots/raw/
+test-results/
+.scratch/
