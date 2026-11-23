@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from './components/Icons'
+import { Logotype } from './components/Logotype'
 import { addEntry, deleteEntry, makeEntry, useEntries, type Entry } from './data/entries'
 import { checkReminders } from './data/notifications'
 import { prefersReducedMotion, useApplyAppearance, useSettings } from './data/settings'
@@ -140,6 +141,9 @@ export function App() {
       )}
 
       <nav className="tab-bar glass" aria-label="主导航">
+        <span className="nav-brand">
+          <Logotype height={26} />
+        </span>
         <a
           href="#/"
           className={route.tab === 'home' ? 'active' : ''}
@@ -164,6 +168,10 @@ export function App() {
           <Icon name="grid" size={24} />
           <span>贴纸本</span>
         </a>
+        <button type="button" className="nav-settings" onClick={() => setSheet({ kind: 'settings' })}>
+          <Icon name="gear" size={24} />
+          <span>设置</span>
+        </button>
       </nav>
 
       {sheet?.kind === 'add' && <EntryEditor onClose={closeSheet} />}

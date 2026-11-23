@@ -43,41 +43,47 @@ export function Home({ entries, now, logCount, onLog, onAdd, onEdit, onSettings 
         </button>
       </header>
 
-      <section className="today-header" aria-label="今天">
-        <div className="today-text">
-          <p className="greeting">
-            {DateText.greeting(now)}，{DateText.header(now)}
-          </p>
-          <h1 className="today-count">
-            今天 <span className="num accent">{stats.todayCount}</span> 次
-          </h1>
-          {elapsed && <p className="since">{elapsed === '刚刚' ? '刚刚来过' : `距上次 ${elapsed}`}</p>}
-          <p className="mood">{moodMessage(mood)}</p>
-        </div>
-        <PalBuddy face={faceFor(mood)} hop={logCount} size={76} />
-      </section>
+      <div className="home-columns">
+        <div className="home-main">
+          <section className="today-header" aria-label="今天">
+            <div className="today-text">
+              <p className="greeting">
+                {DateText.greeting(now)}，{DateText.header(now)}
+              </p>
+              <h1 className="today-count">
+                今天 <span className="num accent">{stats.todayCount}</span> 次
+              </h1>
+              {elapsed && <p className="since">{elapsed === '刚刚' ? '刚刚来过' : `距上次 ${elapsed}`}</p>}
+              <p className="mood">{moodMessage(mood)}</p>
+            </div>
+            <PalBuddy face={faceFor(mood)} hop={logCount} size={76} />
+          </section>
 
-      <div className="log-group">
-        <LogStickerButton todayTypes={todayTypes} burst={logCount} onClick={onLog} />
-        <button type="button" className="secondary-button" onClick={onAdd}>
-          <Icon name="history" size={20} />
-          忘了记？补一条
-        </button>
-      </div>
-
-      <WeekStickers entries={entries} now={now} />
-      <SummaryPanel stats={stats} commonType={commonType} />
-
-      {entries.length > 0 && (
-        <section>
-          <SectionTitle>最近几次</SectionTitle>
-          <div className="panel rows">
-            {entries.slice(0, 3).map((entry) => (
-              <EntryRow key={entry.id} entry={entry} dayStyle onClick={() => onEdit(entry)} />
-            ))}
+          <div className="log-group">
+            <LogStickerButton todayTypes={todayTypes} burst={logCount} onClick={onLog} />
+            <button type="button" className="secondary-button" onClick={onAdd}>
+              <Icon name="history" size={20} />
+              忘了记？补一条
+            </button>
           </div>
-        </section>
-      )}
+        </div>
+
+        <div className="home-side">
+          <WeekStickers entries={entries} now={now} />
+          <SummaryPanel stats={stats} commonType={commonType} />
+
+          {entries.length > 0 && (
+            <section>
+              <SectionTitle>最近几次</SectionTitle>
+              <div className="panel rows">
+                {entries.slice(0, 3).map((entry) => (
+                  <EntryRow key={entry.id} entry={entry} dayStyle onClick={() => onEdit(entry)} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

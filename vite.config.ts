@@ -23,7 +23,7 @@ export default defineConfig({
         start_url: base,
         scope: base,
         display: 'standalone',
-        orientation: 'portrait',
+        orientation: 'any',
         background_color: '#FFF8F0',
         theme_color: '#FFF8F0',
         categories: ['health', 'lifestyle'],
