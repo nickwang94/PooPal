@@ -2,7 +2,7 @@
 
 ## What it is
 
-A private, installable web app (PWA) for logging bowel movements and reading the pattern behind them. One tap logs "now"; optional Bristol type (1–7) and a note add detail. Stats, a calendar, trend charts, best-effort reminders and JSON backup. It replaces the earlier native iOS app (kept on the `ios-archive` branch); backups are compatible both ways.
+A private, installable web app (PWA) for logging bowel movements and reading the pattern behind them. One tap logs "now"; optional Bristol type (1–7) and a note add detail. Stats, a calendar, trend charts, best-effort reminders and JSON backup.
 
 ## Who and where
 
@@ -10,10 +10,10 @@ Chinese-speaking adults tracking their own gut health, often after a doctor's su
 
 ## Platform and constraints
 
-- Web, mobile-first, used mostly from the iPhone home screen (standalone PWA). Platform: `web`. Vite + React + TypeScript, static files self-hosted by the owner.
+- Web, mobile-first, used mostly from the phone home screen (standalone PWA) and also on desktop. Platform: `web`. Vite + React + TypeScript, static files deployed on Cloudflare Pages (https://poopal.pages.dev/).
 - No backend and no push server: reminders only fire while the app is alive, and catch up on the next open. No widget.
 - Data stays in the browser (IndexedDB); no account. Export a backup before switching device or browser.
-- UI copy in Simplified Chinese; casual and warm, like a friend checking in; playful but never crude.
+- UI copy in Simplified Chinese, English and Japanese (follows the system by default); casual and warm, like a friend checking in; playful but never crude.
 - No emoji used as icons; authored SVG drawings only.
 - Light and dark appearance, user-selectable (system / light / dark).
 

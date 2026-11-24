@@ -1,5 +1,5 @@
-// Renders the PWA icons into public/icons/ from the PooPal wordmark geometry, matching the v4
-// iOS app icon: deep plum letters with eyes on a marigold gradient. Run with `npm run icons`.
+// Renders the PWA icons into public/icons/ from the PooPal wordmark geometry, in the v4
+// style: deep plum letters with eyes on a marigold gradient. Run with `npm run icons`.
 import { mkdir, writeFile } from 'node:fs/promises'
 import sharp from 'sharp'
 import { CAP, LOGOTYPE_WIDTH, logotypeGeometry, STROKE } from '../src/logic/logotype.ts'
@@ -7,7 +7,7 @@ import { CAP, LOGOTYPE_WIDTH, logotypeGeometry, STROKE } from '../src/logic/logo
 const out = new URL('../public/icons/', import.meta.url)
 const { path, pupils } = logotypeGeometry()
 
-/** The 1024-unit icon; `letterWidth` is the wordmark width (870 on iOS, smaller for maskable). */
+/** The 1024-unit icon; `letterWidth` is the wordmark width (870 by default, smaller for maskable). */
 function iconSvg({ letterWidth = 870, radius = 0 } = {}) {
   const scale = letterWidth / LOGOTYPE_WIDTH
   const x = (1024 - letterWidth) / 2
