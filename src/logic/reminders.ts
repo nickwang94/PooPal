@@ -1,3 +1,4 @@
+import { messages } from '../i18n'
 import { addDays, atTime, calendarDaysBetween, dayKey, startOfDay, type Millis } from './dates'
 
 export interface ReminderSettings {
@@ -40,13 +41,14 @@ export function inactivityFireDate(
 
 export function inactivityMessage(lastEntry: Millis, fireDate: Millis): { title: string; body: string } {
   const days = calendarDaysBetween(lastEntry, fireDate)
-  return {
-    title: `已经 ${days} 天没有便便记录啦`,
-    body: '多喝水、吃点蔬菜水果，便便了记得来 PooPal 记一笔哦',
-  }
+  const t = messages().reminders
+  return { title: t.inactivityTitle(days), body: t.inactivityBody }
 }
 
-export const DAILY_MESSAGE = { title: '今天便便了吗？', body: '来 PooPal 点一下，记录今天的肠道小日记吧' }
+export function dailyMessage(): { title: string; body: string } {
+  const t = messages().reminders
+  return { title: t.dailyTitle, body: t.dailyBody }
+}
 
 export function dailyComponents(minutes: number): { hour: number; minute: number } {
   const clamped = Math.min(Math.max(Math.round(minutes), 0), 24 * 60 - 1)
@@ -99,7 +101,7 @@ export function planReminders(
     const { hour, minute } = dailyComponents(settings.dailyMinutes)
     const todayAt = atTime(now, hour, minute)
     if (now >= todayAt && now - todayAt < DAILY_GRACE_MS && log.daily !== today) {
-      due.push({ id: 'daily', ...DAILY_MESSAGE })
+      due.push({ id: 'daily', ...dailyMessage() })
     }
     upcoming.push(todayAt > now ? todayAt : atTime(addDays(now, 1), hour, minute))
   }

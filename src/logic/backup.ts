@@ -1,3 +1,4 @@
+import { messages } from '../i18n'
 import { pad, type Millis } from './dates'
 
 /**
@@ -32,19 +33,10 @@ export class BackupError extends Error {
     this.version = version
   }
 
+  /** In the current UI language, so read `describe` again (not `message`) after a language change. */
   static describe(code: BackupErrorCode, version?: number): string {
-    switch (code) {
-      case 'invalidFile':
-        return '这不是 PooPal 的备份文件，或者文件已损坏'
-      case 'passwordRequired':
-        return '这个备份设置了密码，请输入密码'
-      case 'wrongPassword':
-        return '密码不对，再试一次吧'
-      case 'unsupportedVersion':
-        return `备份版本 ${version} 太新了，请先更新 PooPal`
-      case 'cryptoUnavailable':
-        return '当前浏览器不支持加密（需要 HTTPS 访问），请换用 HTTPS 地址打开 PooPal'
-    }
+    const t = messages().backup.errors
+    return code === 'unsupportedVersion' ? t.unsupportedVersion(version) : t[code]
   }
 }
 
@@ -201,11 +193,12 @@ function parseDate(value: unknown): Millis | null {
   return Number.isNaN(t) ? null : t
 }
 
-/** "PooPal-备份-20261114-0905.json" in local time. */
+/** "PooPal-备份-20261114-0905.json" in local time, named in the current UI language. */
 export function backupFileName(date: Millis = Date.now(), encrypted: boolean): string {
+  const t = messages().backup
   const d = new Date(date)
   const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`
-  return `PooPal-备份-${stamp}${encrypted ? '-加密' : ''}.json`
+  return `PooPal-${t.fileWord}-${stamp}${encrypted ? `-${t.encryptedWord}` : ''}.json`
 }
 
 /** Entries are matched by timestamp, to the second. */
@@ -267,10 +260,7 @@ export function makeMergePlan(existing: BackupEntry[], incoming: BackupEntry[]):
 }
 
 export function mergeSummary(plan: MergePlan): string {
-  const parts = [`新增 ${plan.inserts.length} 条`]
-  if (plan.fills.length > 0) parts.push(`补充 ${plan.fills.length} 条的形态或备注`)
-  parts.push(`跳过 ${plan.duplicates} 条重复`)
-  return parts.join('，')
+  return messages().backup.summary(plan.inserts.length, plan.fills.length, plan.duplicates)
 }
 
 // MARK: helpers

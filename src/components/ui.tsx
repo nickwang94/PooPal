@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import type { Entry } from '../data/entries'
-import { bristolInfo, bristolLabel, type BristolType } from '../logic/bristol'
+import { useT } from '../i18n'
+import { bristolLabel, type BristolType } from '../logic/bristol'
 import { DateText } from '../logic/dates'
 import { StatsFormat, type PoopStats } from '../logic/stats'
 import { EntryBadge } from './Bristol'
@@ -59,13 +60,14 @@ export function Stepper({
   onChange: (v: number) => void
   label: string
 }) {
+  const t = useT()
   return (
     <div className="stepper" role="group" aria-label={label}>
-      <button type="button" aria-label="减少" disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}>
+      <button type="button" aria-label={t.settings.decrease} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}>
         −
       </button>
       <span className="stepper-divider" />
-      <button type="button" aria-label="增加" disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}>
+      <button type="button" aria-label={t.settings.increase} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}>
         +
       </button>
     </div>
@@ -126,9 +128,10 @@ export function StatRow({ label, value, unit }: { label: string; value: string; 
 }
 
 export function CommonTypeRow({ type }: { type: BristolType | null }) {
+  const t = useT()
   return (
     <div className="row stat-row">
-      <span>最常见的样子</span>
+      <span>{t.stats.commonType}</span>
       {type ? (
         <span className="stat-value">
           <EntryBadge type={type} size={28} />
@@ -143,14 +146,16 @@ export function CommonTypeRow({ type }: { type: BristolType | null }) {
 
 /** Every number, plain and exact, in one soft panel: label left, value right. */
 export function StatsPanel({ stats, commonType }: { stats: PoopStats; commonType: BristolType | null }) {
+  const t = useT()
   const interval = StatsFormat.interval(stats.averageIntervalDays)
+  const times = t.units.times
   const rows: [string, string, string][] = [
-    ['平均多久一次', interval.value, interval.unit],
-    ['平均每天 · 全部', StatsFormat.perDay(stats.averagePerDay), stats.averagePerDay === null ? '' : '次'],
-    ['平均每天 · 近 30 天', StatsFormat.perDay(stats.averagePerDayLast30), stats.averagePerDayLast30 === null ? '' : '次'],
-    ['近 7 天', String(stats.last7DaysCount), '次'],
-    ['近 30 天', String(stats.last30DaysCount), '次'],
-    ['一共记了', String(stats.totalCount), '次'],
+    [t.stats.averageInterval, interval.value, interval.unit],
+    [t.stats.perDayAll, StatsFormat.perDay(stats.averagePerDay), stats.averagePerDay === null ? '' : times(2)],
+    [t.stats.perDay30, StatsFormat.perDay(stats.averagePerDayLast30), stats.averagePerDayLast30 === null ? '' : times(2)],
+    [t.stats.last7, String(stats.last7DaysCount), times(stats.last7DaysCount)],
+    [t.stats.last30, String(stats.last30DaysCount), times(stats.last30DaysCount)],
+    [t.stats.total, String(stats.totalCount), times(stats.totalCount)],
   ]
   return (
     <div className="panel rows">
@@ -165,22 +170,23 @@ export function StatsPanel({ stats, commonType }: { stats: PoopStats; commonType
 /** One entry: badge, time, type label, note. */
 export function EntryRow({ entry, dayStyle = false, onClick }: { entry: Entry; dayStyle?: boolean; onClick: () => void }) {
   const type = entry.bristolType
+  const t = useT()
   return (
-    <button type="button" className="row entry-row" onClick={onClick} aria-description="编辑这条记录">
+    <button type="button" className="row entry-row" onClick={onClick} aria-description={t.entry.edit}>
       <EntryBadge type={type} size={36} />
       <span className="entry-text">
         <span className="entry-line">
           <b className="num">{dayStyle ? DateText.short(entry.timestamp) : DateText.time(entry.timestamp)}</b>
           {type && (
             <span className="entry-type" style={{ color: stateVar(type) }}>
-              {type} 型 · {bristolInfo(type).name}
+              {bristolLabel(type)}
             </span>
           )}
         </span>
         {entry.note ? (
           <span className="entry-note">{entry.note}</span>
         ) : (
-          !type && <span className="entry-note">点一下，补上形态和小备注</span>
+          !type && <span className="entry-note">{t.entry.addDetailsHint}</span>
         )}
       </span>
       <Icon name="chevronRight" size={14} className="chevron" />
@@ -307,6 +313,7 @@ export function ConfirmDialog({
   onCancel: () => void
 }) {
   const confirmRef = useRef<HTMLButtonElement>(null)
+  const t = useT()
   useEffect(() => {
     confirmRef.current?.focus()
     const onKey = (e: KeyboardEvent) => {
@@ -328,7 +335,7 @@ export function ConfirmDialog({
           </button>
         </div>
         <button type="button" className="confirm-cancel" onClick={onCancel}>
-          取消
+          {t.entry.cancel}
         </button>
       </div>
     </div>

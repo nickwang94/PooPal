@@ -11,10 +11,15 @@ import {
   requestNotificationPermission,
   type NotificationSupport,
 } from '../data/notifications'
-import { APPEARANCE_OPTIONS, setAppearance, updateReminders, useSettings } from '../data/settings'
+import { APPEARANCES, setAppearance, updateReminders, useSettings } from '../data/settings'
+import { LANGUAGE_NAMES, LANGUAGES, setLanguagePreference, useLanguage, useT, type LanguagePreference } from '../i18n'
 import { BackupError, backupFileName, decodeBackup, encodeBackup, isEncryptedBackup, mergeSummary } from '../logic/backup'
 import { pad } from '../logic/dates'
 import { dailyComponents, INACTIVITY_HOUR, type ReminderSettings } from '../logic/reminders'
+
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 function SettingLabel({ title, icon, color }: { title: string; icon: IconName; color: string }) {
   return (
@@ -38,13 +43,15 @@ function Group({ header, footer, children }: { header: string; footer?: ReactNod
 }
 
 export function Settings({ onClose }: { onClose: () => void }) {
+  const t = useT()
   return (
     <Sheet
-      title="设置"
+      title={t.settings.title}
+      labelledBy="settings-title"
       onClose={onClose}
       trailing={
         <button type="button" className="pill-button strong" onClick={onClose}>
-          完成
+          {t.settings.done}
         </button>
       }
     >
@@ -58,11 +65,28 @@ export function Settings({ onClose }: { onClose: () => void }) {
 
 function AppearanceSection() {
   const { appearance } = useSettings()
+  const { preference } = useLanguage()
+  const t = useT()
+  const appearanceOptions = APPEARANCES.map((value) => ({ value, title: t.settings.appearanceOptions[value] }))
+  const languageOptions: { value: LanguagePreference; title: string }[] = [
+    { value: 'system', title: t.settings.followSystem },
+    ...LANGUAGES.map((value) => ({ value, title: LANGUAGE_NAMES[value] })),
+  ]
   return (
-    <Group header="看起来">
+    <Group header={t.settings.looks}>
       <div className="row setting-row stacked">
-        <SettingLabel title="外观" icon="halfCircle" color="#7A4BA0" />
-        <Segmented label="外观" value={appearance} options={APPEARANCE_OPTIONS} onChange={setAppearance} />
+        <SettingLabel title={t.settings.appearance} icon="halfCircle" color="#7A4BA0" />
+        <Segmented label={t.settings.appearance} value={appearance} options={appearanceOptions} onChange={setAppearance} />
+      </div>
+      <div className="row setting-row stacked">
+        <SettingLabel title={t.settings.language} icon="globe" color="var(--loose-ink)" />
+        <Segmented
+          label={t.settings.language}
+          value={preference}
+          options={languageOptions}
+          onChange={setLanguagePreference}
+          className="language-picker"
+        />
       </div>
     </Group>
   )
@@ -71,6 +95,7 @@ function AppearanceSection() {
 function RemindersSection() {
   const { reminders } = useSettings()
   const [permission, setPermission] = useState<NotificationSupport>(notificationSupport)
+  const t = useT()
 
   const change = async (patch: Partial<ReminderSettings>) => {
     updateReminders(patch)
@@ -91,29 +116,25 @@ function RemindersSection() {
 
   return (
     <Group
-      header="小提醒"
+      header={t.settings.remindersHeader}
       footer={
         <>
-          {reminders.inactivityEnabled && (
-            <p>
-              超过 {reminders.inactivityDays} 天没来的话，上午 {INACTIVITY_HOUR} 点轻轻提醒你。
-            </p>
-          )}
-          <p>网页版只能在 PooPal 开着或刚切到后台时发提醒；完全关掉后，会在下次打开时补上。</p>
+          {reminders.inactivityEnabled && <p>{t.settings.inactivityFooter(reminders.inactivityDays, INACTIVITY_HOUR)}</p>}
+          <p>{t.settings.webLimit}</p>
         </>
       }
     >
       <div className="row setting-row">
-        <SettingLabel title="太久没来时提醒我" icon="bell" color="var(--dry-ink)" />
-        <Toggle label="太久没来时提醒我" checked={reminders.inactivityEnabled} onChange={(v) => change({ inactivityEnabled: v })} />
+        <SettingLabel title={t.settings.inactivity} icon="bell" color="var(--dry-ink)" />
+        <Toggle label={t.settings.inactivity} checked={reminders.inactivityEnabled} onChange={(v) => change({ inactivityEnabled: v })} />
       </div>
       {reminders.inactivityEnabled && (
         <div className="row setting-row indented">
-          <span>超过几天算太久</span>
+          <span>{t.settings.inactivityDays}</span>
           <span className="stepper-wrap">
-            <span className="muted num">{reminders.inactivityDays} 天</span>
+            <span className="muted num">{t.units.daysValue(reminders.inactivityDays)}</span>
             <Stepper
-              label="超过几天算太久"
+              label={t.settings.inactivityDays}
               value={reminders.inactivityDays}
               min={1}
               max={14}
@@ -123,15 +144,15 @@ function RemindersSection() {
         </div>
       )}
       <div className="row setting-row">
-        <SettingLabel title="每天提醒我记一下" icon="alarm" color="var(--loose-ink)" />
-        <Toggle label="每天提醒我记一下" checked={reminders.dailyEnabled} onChange={(v) => change({ dailyEnabled: v })} />
+        <SettingLabel title={t.settings.daily} icon="alarm" color="var(--loose-ink)" />
+        <Toggle label={t.settings.daily} checked={reminders.dailyEnabled} onChange={(v) => change({ dailyEnabled: v })} />
       </div>
       {reminders.dailyEnabled && (
         <div className="row setting-row indented">
-          <span>提醒时间</span>
+          <span>{t.settings.dailyTime}</span>
           <PickerPill
             type="time"
-            label="提醒时间"
+            label={t.settings.dailyTime}
             value={`${pad(hour)}:${pad(minute)}`}
             display={`${pad(hour)}:${pad(minute)}`}
             onChange={(value) => {
@@ -143,15 +164,13 @@ function RemindersSection() {
       )}
       {anyOn && permission === 'default' && (
         <button type="button" className="row link-row" onClick={askPermission}>
-          允许 PooPal 发通知
+          {t.settings.allowNotifications}
         </button>
       )}
-      {anyOn && permission === 'denied' && <p className="row warning">通知权限已关闭。请在浏览器或系统设置里允许 PooPal 发通知。</p>}
+      {anyOn && permission === 'denied' && <p className="row warning">{t.settings.notificationsDenied}</p>}
       {anyOn && permission === 'unsupported' && (
         <p className="row warning">
-          {isStandalone()
-            ? '这个浏览器不支持网页通知。'
-            : 'iPhone 上要先在 Safari 点「分享 › 添加到主屏幕」，从主屏幕打开后才能开启提醒（需要 iOS 16.4 及以上）。'}
+          {isStandalone() ? t.settings.notificationsUnsupported : t.settings.notificationsIos}
         </p>
       )}
     </Group>
@@ -169,8 +188,16 @@ function BackupSection() {
   const [step, setStep] = useState<ImportStep>({ kind: 'idle' })
   const [importPassword, setImportPassword] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
+  const t = useT()
+  const b = t.backup
 
-  const problem = !usePassword ? null : password.length < 4 ? '密码至少 4 位' : password !== confirm ? '两次输入的密码不一致' : null
+  const problem = !usePassword
+    ? null
+    : password.length < 4
+      ? b.passwordTooShort
+      : password !== confirm
+        ? b.passwordMismatch
+        : null
 
   const deliver = async (file: File) => {
     if (navigator.canShare?.({ files: [file] })) {
@@ -208,7 +235,7 @@ function BackupSection() {
       const file = new File([text], backupFileName(Date.now(), encrypted), { type: 'application/json' })
       await deliver(file)
     } catch (error) {
-      setStep({ kind: 'message', text: `导出失败：${error instanceof Error ? error.message : String(error)}` })
+      setStep({ kind: 'message', text: b.exportFailed(errorText(error)) })
     } finally {
       setBusy(false)
     }
@@ -218,12 +245,14 @@ function BackupSection() {
     try {
       const file = await decodeBackup(text, pw)
       const plan = await importBackup(file)
-      setStep({ kind: 'message', text: `导入完成：${mergeSummary(plan)}` })
+      setStep({ kind: 'message', text: b.importDone(mergeSummary(plan)) })
     } catch (error) {
       if (error instanceof BackupError && error.code === 'wrongPassword') {
-        setStep({ kind: 'password', text, error: error.message })
+        setStep({ kind: 'password', text, error: BackupError.describe(error.code) })
+      } else if (error instanceof BackupError) {
+        setStep({ kind: 'message', text: BackupError.describe(error.code, error.version) })
       } else {
-        setStep({ kind: 'message', text: error instanceof Error ? error.message : `导入失败：${String(error)}` })
+        setStep({ kind: 'message', text: b.importFailed(errorText(error)) })
       }
     }
   }
@@ -239,7 +268,7 @@ function BackupSection() {
         await runImport(text)
       }
     } catch (error) {
-      setStep({ kind: 'message', text: `读取文件失败：${error instanceof Error ? error.message : String(error)}` })
+      setStep({ kind: 'message', text: b.readFailed(errorText(error)) })
     } finally {
       if (fileInput.current) fileInput.current.value = ''
     }
@@ -249,34 +278,28 @@ function BackupSection() {
 
   return (
     <Group
-      header="备份"
-      footer={
-        <p>
-          {usePassword
-            ? '加密后只有输入密码才能导入，密码忘记将无法恢复。'
-            : '导出为 JSON 文件，可以存到「文件」或发给自己。导入会合并到现有记录，重复的自动跳过。和 iOS 版 PooPal 的备份互通。'}
-        </p>
-      }
+      header={b.header}
+      footer={<p>{usePassword ? b.footerEncrypted : b.footerPlain}</p>}
     >
       <div className="row setting-row">
-        <SettingLabel title="给备份加个密码" icon="lock" color="#7A6A7E" />
-        <Toggle label="给备份加个密码" checked={usePassword} onChange={setUsePassword} />
+        <SettingLabel title={b.usePassword} icon="lock" color="#7A6A7E" />
+        <Toggle label={b.usePassword} checked={usePassword} onChange={setUsePassword} />
       </div>
       {usePassword && (
         <div className="row password-fields">
           <input
             type="password"
             autoComplete="new-password"
-            placeholder="设置密码（至少 4 位）"
-            aria-label="设置密码（至少 4 位）"
+            placeholder={b.newPassword}
+            aria-label={b.newPassword}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <input
             type="password"
             autoComplete="new-password"
-            placeholder="再输入一次"
-            aria-label="再输入一次"
+            placeholder={b.repeatPassword}
+            aria-label={b.repeatPassword}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
           />
@@ -284,15 +307,15 @@ function BackupSection() {
         </div>
       )}
       <button type="button" className="row setting-row button-row" onClick={exportBackup} disabled={problem !== null || busy}>
-        <SettingLabel title={busy ? '正在准备…' : '导出备份'} icon="share" color="var(--ideal-ink)" />
+        <SettingLabel title={busy ? b.preparing : b.export} icon="share" color="var(--ideal-ink)" />
       </button>
       {ready && (
         <button type="button" className="row link-row" onClick={() => void deliver(ready)}>
-          备份准备好了，点这里保存
+          {b.ready}
         </button>
       )}
       <button type="button" className="row setting-row button-row" onClick={() => fileInput.current?.click()}>
-        <SettingLabel title="导入备份" icon="download" color="var(--ideal-ink)" />
+        <SettingLabel title={b.import} icon="download" color="var(--ideal-ink)" />
       </button>
       <input
         ref={fileInput}
@@ -304,25 +327,25 @@ function BackupSection() {
 
       {step.kind === 'password' && (
         <AlertDialog
-          title="这个备份设置了密码"
+          title={b.passwordTitle}
           onDismiss={dismiss}
           actions={
             <>
               <button type="button" onClick={dismiss}>
-                取消
+                {b.cancel}
               </button>
               <button type="button" className="strong" onClick={() => void runImport(step.text, importPassword)}>
-                导入
+                {b.importAction}
               </button>
             </>
           }
         >
-          <p>{step.error ?? '请输入导出时设置的密码。'}</p>
+          <p>{step.error ?? b.passwordPrompt}</p>
           <input
             type="password"
             autoComplete="current-password"
-            aria-label="备份密码"
-            placeholder="备份密码"
+            aria-label={b.passwordLabel}
+            placeholder={b.passwordLabel}
             value={importPassword}
             onChange={(e) => setImportPassword(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void runImport(step.text, importPassword)}
@@ -335,7 +358,7 @@ function BackupSection() {
           onDismiss={dismiss}
           actions={
             <button type="button" className="strong" onClick={dismiss}>
-              好
+              {b.ok}
             </button>
           }
         />
@@ -345,17 +368,16 @@ function BackupSection() {
 }
 
 function AboutSection() {
+  const t = useT()
   return (
     <div className="form-group about">
       <div className="about-brand">
         <PalBuddy face="smile" size={40} />
         <Logotype height={22} />
       </div>
-      <p>
-        你的记录只存在这个浏览器里，不用登录，谁也看不到。换手机、换浏览器或清理网站数据前，记得先导出备份哦。
-      </p>
-      {!isStandalone() && <p>在 iPhone 的 Safari 里点「分享 › 添加到主屏幕」，用起来就像 App 一样，没网也能打开。</p>}
-      {isDemo && <p className="warning">现在看的是示例数据，改动不会保存到你的记录里。</p>}
+      <p>{t.about.privacy}</p>
+      {!isStandalone() && <p>{t.about.install}</p>}
+      {isDemo && <p className="warning">{t.about.demo}</p>}
     </div>
   )
 }

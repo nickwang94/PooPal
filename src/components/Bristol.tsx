@@ -1,4 +1,5 @@
 import { useId, type CSSProperties } from 'react'
+import { useT } from '../i18n'
 import { BRISTOL_TYPES, bristolInfo, type BristolType } from '../logic/bristol'
 import { stateVar, stickerInk } from './colors'
 import { Icon } from './Icons'
@@ -115,12 +116,13 @@ interface PickerProps {
   onChange: (value: BristolType | undefined) => void
 }
 
-/** A 4×2 grid of the seven types plus 不确定. The selected sticker fills, lifts and tilts. */
+/** A 4×2 grid of the seven types plus "not sure". The selected sticker fills, lifts and tilts. */
 export function BristolPicker({ value, onChange }: PickerProps) {
-  const hint = value ? `${bristolInfo(value).group} · ${bristolInfo(value).hint}` : null
+  const t = useT()
+  const hint = value ? t.bristol.hint(bristolInfo(value).group, bristolInfo(value).hint) : null
   return (
     <div className="bristol-picker">
-      <div className="bristol-grid" role="radiogroup" aria-label="布里斯托分类">
+      <div className="bristol-grid" role="radiogroup" aria-label={t.bristol.pickerLabel}>
         {BRISTOL_TYPES.map((type) => {
           const selected = value === type
           return (
@@ -129,7 +131,7 @@ export function BristolPicker({ value, onChange }: PickerProps) {
               type="button"
               role="radio"
               aria-checked={selected}
-              aria-label={`${type} 型 ${bristolInfo(type).name}`}
+              aria-label={t.bristol.spoken(type, bristolInfo(type).name)}
               className={`picker-sticker${selected ? ' selected' : ''}`}
               style={{
                 background: selected ? stateVar(type) : stateVar(type, '-pale'),
@@ -147,13 +149,13 @@ export function BristolPicker({ value, onChange }: PickerProps) {
           type="button"
           role="radio"
           aria-checked={value === undefined}
-          aria-label="不确定形态"
+          aria-label={t.bristol.unsureLabel}
           className={`picker-sticker unsure${value === undefined ? ' selected' : ''}`}
           onClick={() => onChange(undefined)}
         >
           <Icon name="question" size={22} />
-          <span className="picker-number">不确定</span>
-          <span className="picker-name">先跳过</span>
+          <span className="picker-number">{t.bristol.unsure}</span>
+          <span className="picker-name">{t.bristol.skip}</span>
         </button>
       </div>
       <p className="picker-hint" aria-live="polite">

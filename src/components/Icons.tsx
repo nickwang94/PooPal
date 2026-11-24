@@ -19,6 +19,7 @@ export type IconName =
   | 'halfCircle'
   | 'seal'
   | 'trash'
+  | 'globe'
 
 const STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
@@ -94,6 +95,12 @@ const PATHS: Record<IconName, ReactNode> = {
         d="M12 2.5l2.2 1.6 2.7-.2.9 2.6 2.3 1.4-.6 2.6.9 2.6-2.1 1.7-.6 2.7-2.7.3L12 21.5l-2.2-1.6-2.7.2-.9-2.6-2.3-1.4.6-2.6-.9-2.6 2.1-1.7.6-2.7 2.7-.3z"
       />
       <path d="M8.2 12.2l2.6 2.6 5-5.2" fill="none" stroke="var(--icon-cut, #fff)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </g>
+  ),
+  globe: (
+    <g {...STROKE}>
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M3.8 12h16.4M12 3.8c2.3 2.3 3.4 5 3.4 8.2s-1.1 5.9-3.4 8.2c-2.3-2.3-3.4-5-3.4-8.2s1.1-5.9 3.4-8.2z" />
     </g>
   ),
   trash: (

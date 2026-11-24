@@ -3,11 +3,7 @@ import { DEFAULT_REMINDERS, type ReminderLog, type ReminderSettings } from '../l
 
 export type Appearance = 'system' | 'light' | 'dark'
 
-export const APPEARANCE_OPTIONS: { value: Appearance; title: string }[] = [
-  { value: 'system', title: '跟随系统' },
-  { value: 'light', title: '浅色' },
-  { value: 'dark', title: '深色' },
-]
+export const APPEARANCES: readonly Appearance[] = ['system', 'light', 'dark']
 
 const APPEARANCE_KEY = 'poopal.appearance'
 const REMINDERS_KEY = 'poopal.reminders'
