@@ -1,3 +1,4 @@
+import { messages } from '../i18n'
 import { asBristol, type BristolType } from './bristol'
 import { addDays, addMonths, calendarDaysBetween, startOfDay, startOfMonth, startOfWeek, type Millis } from './dates'
 
@@ -155,31 +156,21 @@ export function moodFor(daysSinceLast: number | null): PoopMood {
 }
 
 export function moodTitle(mood: PoopMood): string {
+  const t = messages().moodTitle
   switch (mood.kind) {
     case 'noData':
-      return '还没有记录哦'
+      return t.noData
     case 'today':
-      return '今天顺顺利利'
+      return t.today
     case 'yesterday':
-      return '昨天来过啦'
+      return t.yesterday
     default:
-      return `已经 ${mood.days} 天没来了`
+      return t.days(mood.days)
   }
 }
 
 export function moodMessage(mood: PoopMood): string {
-  switch (mood.kind) {
-    case 'noData':
-      return '第一次？点下面的大贴纸就记好啦'
-    case 'today':
-      return '肠道小伙伴给你比个心'
-    case 'yesterday':
-      return '今天也记得多喝水呀'
-    case 'aWhile':
-      return '吃点蔬果，起来走走吧'
-    case 'tooLong':
-      return '多喝水、多吃点膳食纤维；一直不舒服记得看医生哦'
-  }
+  return messages().mood[mood.kind]
 }
 
 export interface ValueUnit {
@@ -194,22 +185,30 @@ export const StatsFormat = {
   /** Hours when under a day, otherwise days with one decimal. */
   interval(days: number | null): ValueUnit {
     if (days === null) return { value: '—', unit: '' }
+    const { units } = messages()
     const hours = Math.round(days * 24)
-    if (hours < 24) return { value: Math.max(hours, 1).toFixed(0), unit: '小时' }
-    return { value: days.toFixed(1), unit: '天' }
+    if (hours < 24) {
+      const shown = Math.max(hours, 1)
+      return { value: shown.toFixed(0), unit: units.hours(shown) }
+    }
+    return { value: days.toFixed(1), unit: units.days(days) }
+  },
+  /** Whether the last entry was under an hour ago, which reads as "just now" rather than a duration. */
+  isJustNow(last: Millis, now: Millis = Date.now()): boolean {
+    return now - last < 3_600_000
   },
   /** Elapsed time since the last entry: "刚刚", "3 小时", "2 天". */
   elapsed(last: Millis | null, now: Millis = Date.now()): string | null {
     if (last === null) return null
-    const minutes = Math.max(0, (now - last) / 60_000)
-    if (minutes < 60) return '刚刚'
-    const hours = Math.floor(minutes / 60)
-    if (hours < 48) return `${hours} 小时`
-    return `${Math.floor(hours / 24)} 天`
+    const { units } = messages()
+    if (StatsFormat.isJustNow(last, now)) return units.justNow
+    const hours = Math.floor(Math.max(0, now - last) / 3_600_000)
+    if (hours < 48) return units.hoursValue(hours)
+    return units.daysValue(Math.floor(hours / 24))
   },
   daysSince(days: number | null): ValueUnit {
     if (days === null) return { value: '—', unit: '' }
-    if (days === 0) return { value: '今天', unit: '' }
-    return { value: String(days), unit: '天' }
+    if (days === 0) return { value: messages().date.today, unit: '' }
+    return { value: String(days), unit: messages().units.days(days) }
   },
 }

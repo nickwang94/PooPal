@@ -10,6 +10,10 @@
 | ![贴纸本](screenshots/light-history-calendar.png) | ![趋势](screenshots/dark-trends.png) |
 | ![补一条](screenshots/light-add-entry.png) | ![设置](screenshots/dark-settings.png) |
 
+## 语言
+
+界面支持简体中文、English 和日本語，在「设置 › 语言」里切换。默认跟随系统：浏览器首选语言是中文（包括繁体）就用简体中文，日语用日本語，其他语言用 English。文案在 `src/i18n/` 里，每种语言一个文件，结构和 `zh.ts` 一致，缺字段会在类型检查时报错。
+
 ## 开发
 
 需要 Node.js 22+。
@@ -18,6 +22,7 @@
 npm install
 npm run dev          # 本地开发 http://localhost:5173 （加 ?demo 用示例数据）
 npm test             # 单元测试（统计、提醒、备份格式，移植自 iOS 的 PoopStatsTests 等）
+npm run test:e2e     # Playwright 端到端测试（会先构建；首次需要 npx playwright install chromium）
 npm run lint         # ESLint
 npm run typecheck    # TypeScript
 npm run build        # 生成 dist/（静态文件 + Service Worker + manifest）
@@ -57,7 +62,7 @@ poopal.example.com {
 
 ## 数据和隐私
 
-- 记录存在浏览器的 IndexedDB 里，设置（外观、提醒）存在 localStorage。没有账号、没有服务器、不联网上传。
+- 记录存在浏览器的 IndexedDB 里，设置（外观、语言、提醒）存在 localStorage。没有账号、没有服务器、不联网上传。
 - 数据跟着「这个浏览器 + 这个网址」走：换手机、换浏览器、换域名，或在系统里清除网站数据，记录都会消失。请定期在 设置 › 备份 导出。
 - Safari 会清理 7 天没打开过的「普通网站」的数据；添加到主屏幕的 App 不受这条限制。PooPal 也会请求浏览器「持久存储」。
 

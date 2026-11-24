@@ -11,4 +11,5 @@ dev-dist/
 # Local tooling output
 screenshots/raw/
 test-results/
+playwright-report/
 .scratch/

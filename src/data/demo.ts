@@ -1,3 +1,4 @@
+import { messages } from '../i18n'
 import { asBristol } from '../logic/bristol'
 import { addDays, atTime, startOfDay } from '../logic/dates'
 import type { Entry } from './entries'
@@ -6,7 +7,7 @@ import type { Entry } from './entries'
 export function demoEntries(now = Date.now()): Entry[] {
   const today = startOfDay(now)
   const types = [4, 3, 4, 5, 4, 2, 4, 6, 3, 4, 4, 1, 3, 4, 5]
-  const notes: Record<number, string> = { 1: '昨晚吃了火锅', 6: '早上喝了一大杯咖啡', 13: '有点肚子不舒服', 30: '旅行第一天' }
+  const notes = messages().demoNotes
   const entries: Entry[] = []
   for (let day = 0; day < 84; day++) {
     const pattern = (day * 7 + Math.floor(day / 5)) % 9

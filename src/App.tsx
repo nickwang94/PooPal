@@ -4,6 +4,7 @@ import { Logotype } from './components/Logotype'
 import { addEntry, deleteEntry, makeEntry, useEntries, type Entry } from './data/entries'
 import { checkReminders } from './data/notifications'
 import { prefersReducedMotion, useApplyAppearance, useSettings } from './data/settings'
+import { useLanguage, useT } from './i18n'
 import { DateText } from './logic/dates'
 import { EntryEditor } from './screens/EntryEditor'
 import { History, type HistoryMode } from './screens/History'
@@ -43,6 +44,8 @@ function useNow(): number {
 export function App() {
   const { entries, loaded, error } = useEntries()
   const { appearance, reminders } = useSettings()
+  const { language } = useLanguage()
+  const t = useT()
   useApplyAppearance(appearance)
   // Entries are saved with the real clock, so the ticking clock must never lag behind the newest one.
   const now = Math.max(useNow(), entries[0]?.timestamp ?? 0)
@@ -60,7 +63,7 @@ export function App() {
 
   useEffect(() => {
     if (loaded) void checkReminders()
-  }, [loaded, entries, reminders, now])
+  }, [loaded, entries, reminders, now, language])
 
   const navigate = (next: Route) => {
     history.replaceState(null, '', routeHash(next))
@@ -94,8 +97,8 @@ export function App() {
       <main className="content">
         {error ? (
           <div className="empty-state">
-            <h2>打不开本地数据库</h2>
-            <p>浏览器可能处于无痕模式，或禁止了网站存储。PooPal 需要 IndexedDB 才能保存记录。</p>
+            <h2>{t.app.dbErrorTitle}</h2>
+            <p>{t.app.dbErrorBody}</p>
             <p className="muted">{error}</p>
           </div>
         ) : !loaded ? null : route.tab === 'home' ? (
@@ -123,7 +126,7 @@ export function App() {
       {lastLogged && route.tab === 'home' && (
         <div className="toast" role="status">
           <Icon name="seal" size={24} className="toast-icon" />
-          <span className="toast-text">记好啦 · {DateText.time(lastLogged.timestamp)}</span>
+          <span className="toast-text">{t.app.logged(DateText.time(lastLogged.timestamp))}</span>
           <button
             type="button"
             className="toast-action"
@@ -132,15 +135,15 @@ export function App() {
               setLastLogged(null)
             }}
           >
-            加点细节
+            {t.app.addDetails}
           </button>
           <button type="button" className="toast-action danger" onClick={undo}>
-            撤销
+            {t.app.undo}
           </button>
         </div>
       )}
 
-      <nav className="tab-bar glass" aria-label="主导航">
+      <nav className="tab-bar glass" aria-label={t.app.mainNav}>
         <span className="nav-brand">
           <Logotype height={26} />
         </span>
@@ -154,7 +157,7 @@ export function App() {
           }}
         >
           <Icon name="home" size={24} />
-          <span>今天</span>
+          <span>{t.app.tabToday}</span>
         </a>
         <a
           href="#/history/calendar"
@@ -166,11 +169,11 @@ export function App() {
           }}
         >
           <Icon name="grid" size={24} />
-          <span>贴纸本</span>
+          <span>{t.app.tabStickers}</span>
         </a>
         <button type="button" className="nav-settings" onClick={() => setSheet({ kind: 'settings' })}>
           <Icon name="gear" size={24} />
-          <span>设置</span>
+          <span>{t.app.tabSettings}</span>
         </button>
       </nav>
 

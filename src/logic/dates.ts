@@ -1,9 +1,12 @@
+import { messages } from '../i18n'
+import { pad } from './pad'
+
 /** Epoch milliseconds. All calendar math uses the device's local time zone. */
 export type Millis = number
 
 const DAY_MS = 86_400_000
 
-/** Weeks start on Monday, as in the zh-CN calendar. */
+/** Weeks start on Monday (ISO 8601) in every language, so weekly stats don't shift when the language changes. */
 export const WEEK_STARTS_ON = 1
 
 export function startOfDay(t: Millis): Millis {
@@ -62,62 +65,56 @@ export function dayKey(t: Millis): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-export function pad(n: number): string {
-  return String(n).padStart(2, '0')
-}
+export { pad }
 
-const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
-
-/** Text helpers mirroring the iOS `DateText`. */
+/** Text helpers mirroring the iOS `DateText`, in the current UI language. */
 export const DateText = {
-  /** "11月2日 星期一" */
+  /** "11月2日 星期一" / "Monday, Nov 2" / "11月2日（月）" */
   header(t: Millis): string {
-    const d = new Date(t)
-    return `${d.getMonth() + 1}月${d.getDate()}日 星期${WEEKDAYS[d.getDay()]}`
+    return messages().date.header(new Date(t))
   },
   /** "08:30" */
   time(t: Millis): string {
-    const d = new Date(t)
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}`
+    return messages().date.time(new Date(t))
   },
-  /** "2026年11月" */
+  /** "2026年11月" / "November 2026" */
   month(t: Millis): string {
-    const d = new Date(t)
-    return `${d.getFullYear()}年${d.getMonth() + 1}月`
+    return messages().date.month(new Date(t))
   },
-  /** "11月2日" */
+  /** "11月2日" / "Nov 2" */
   monthDay(t: Millis): string {
-    const d = new Date(t)
-    return `${d.getMonth() + 1}月${d.getDate()}日`
+    return messages().date.monthDay(new Date(t))
   },
   greeting(t: Millis): string {
+    const g = messages().date.greeting
     const h = new Date(t).getHours()
-    if (h >= 5 && h < 11) return '早上好'
-    if (h >= 11 && h < 14) return '中午好'
-    if (h >= 14 && h < 18) return '下午好'
-    if (h >= 18 && h < 23) return '晚上好'
-    return '夜深了'
+    if (h >= 5 && h < 11) return g.morning
+    if (h >= 11 && h < 14) return g.noon
+    if (h >= 14 && h < 18) return g.afternoon
+    if (h >= 18 && h < 23) return g.evening
+    return g.night
   },
-  /** Single-character weekday: "一" … "日". */
+  /** Short weekday: "一" / "Mon" / "月". */
   weekdayShort(t: Millis): string {
-    return WEEKDAYS[new Date(t).getDay()]
+    return messages().date.weekdayShort[new Date(t).getDay()]
   },
   /** Weekday column headers in calendar order. */
   weekdayHeaders(): string[] {
-    return Array.from({ length: 7 }, (_, i) => WEEKDAYS[(WEEK_STARTS_ON + i) % 7])
+    const names = messages().date.weekdayShort
+    return Array.from({ length: 7 }, (_, i) => names[(WEEK_STARTS_ON + i) % 7])
   },
   /** "今天" / "昨天" / "11月2日 星期一" */
   dayTitle(t: Millis, now: Millis = Date.now()): string {
     const diff = calendarDaysBetween(t, now)
-    if (diff === 0) return '今天'
-    if (diff === 1) return '昨天'
+    if (diff === 0) return messages().date.today
+    if (diff === 1) return messages().date.yesterday
     return DateText.header(t)
   },
   /** "今天 08:30" / "昨天 21:10" / "11月2日 08:30" */
   short(t: Millis, now: Millis = Date.now()): string {
     const diff = calendarDaysBetween(t, now)
-    if (diff === 0) return `今天 ${DateText.time(t)}`
-    if (diff === 1) return `昨天 ${DateText.time(t)}`
+    if (diff === 0) return `${messages().date.today} ${DateText.time(t)}`
+    if (diff === 1) return `${messages().date.yesterday} ${DateText.time(t)}`
     return `${DateText.monthDay(t)} ${DateText.time(t)}`
   },
 }

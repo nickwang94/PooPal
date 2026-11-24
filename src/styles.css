@@ -55,6 +55,12 @@
   color-scheme: light;
 }
 
+/* Japanese text needs Japanese glyph shapes for shared kanji, so Japanese fonts go before Chinese ones. */
+:root:lang(ja) {
+  --font: ui-rounded, 'SF Pro Rounded', 'Nunito Variable', -apple-system, BlinkMacSystemFont, 'Hiragino Maru Gothic ProN',
+    'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
+}
+
 :root[data-theme='dark'] {
   --ground: #1c1620;
   --surface: #2a2230;
@@ -309,6 +315,7 @@ button:disabled {
 
 .stat-value b {
   font-weight: 700;
+  text-align: right;
 }
 
 .stat-value small {
@@ -688,6 +695,10 @@ button:disabled {
   grid-column: 3;
 }
 
+.history-bar .segmented button {
+  padding: 0 18px;
+}
+
 .large-title {
   font-size: 34px;
   font-weight: 800;
@@ -704,6 +715,7 @@ button:disabled {
 .segmented button {
   min-height: 40px;
   padding: 0 22px;
+  white-space: nowrap;
   border-radius: 999px;
   font-size: 15px;
   font-weight: 500;
@@ -1460,6 +1472,7 @@ p.row {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
 }
 
 .stepper {
