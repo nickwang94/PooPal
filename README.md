@@ -1,50 +1,90 @@
 # PooPal
 
-记录便便的小贴纸手帐，网页版（PWA）。一键记录、布里斯托分型和备注、贴纸日历、趋势图、提醒、加密备份。不用登录，数据只存在你自己的浏览器里（IndexedDB）。可以「添加到主屏幕」，用起来像 App，没网也能打开。
+A cute, private poop-frequency and gut-health tracker for everyday personal use, styled as a little sticker journal with a friendly buddy.
 
-> 之前的 iOS（SwiftUI）版本保存在 [`ios-archive`](https://github.com/nickwang94/PooPal/tree/ios-archive) 分支和 `ios-final` 标签里。网页版的备份文件和 iOS 版互通。
+**Try it now: [poopal.pages.dev](https://poopal.pages.dev/)**. It is deployed on Cloudflare Pages and works directly in the browser on desktop and mobile. On your phone, use your browser's "Add to Home Screen" (or "Install app") option and it opens full-screen like a native app, even offline.
 
-| 浅色 | 深色 |
+PooPal is a **frontend-only** project: a Vite + React + TypeScript progressive web app (PWA). There is no backend, no account and no login. Your entries never leave your device; they live in your browser's IndexedDB.
+
+| Light | Dark |
 | --- | --- |
-| ![首页](screenshots/light-home.png) | ![首页](screenshots/dark-home.png) |
-| ![贴纸本](screenshots/light-history-calendar.png) | ![趋势](screenshots/dark-trends.png) |
-| ![补一条](screenshots/light-add-entry.png) | ![设置](screenshots/dark-settings.png) |
+| ![Home](screenshots/light-home.png) | ![Home](screenshots/dark-home.png) |
+| ![Sticker book](screenshots/light-history-calendar.png) | ![Trends](screenshots/dark-trends.png) |
+| ![Add an entry](screenshots/light-add-entry.png) | ![Settings](screenshots/dark-settings.png) |
 
-## 语言
+## Features
 
-界面支持简体中文、English 和日本語，在「设置 › 语言」里切换。默认跟随系统：浏览器首选语言是中文（包括繁体）就用简体中文，日语用日本語，其他语言用 English。文案在 `src/i18n/` 里，每种语言一个文件，结构和 `zh.ts` 一致，缺字段会在类型检查时报错。
+- **One-tap logging.** Press the big sticker to log "now", or backfill an entry you forgot. Undo right from the toast.
+- **Bristol stool scale.** Optionally tag each visit with Bristol type 1–7 (or "not sure") and add a short note.
+- **Sticker calendar and list.** Every visit is a round sticker on its day, so the week and month read at a glance.
+- **Trends.** Weekly and monthly counts over the last 12 periods, Bristol type distribution over 30 days, and the full numbers (average interval, most common type and more).
+- **Reminders.** Best-effort "it's been a while" and daily reminders via web notifications (see [Reminder limits](#reminder-limits)).
+- **Backup export and import.** Plain JSON or password-encrypted (AES-256-GCM), merged on import without duplicates.
+- **Three languages.** 简体中文, English and 日本語, following your system language by default and switchable in Settings.
+- **Light and dark appearance.** Follow the system, or pick one.
+- **Private by design.** No account, no server, no analytics, no uploads.
 
-## 开发
+## Tech stack
 
-需要 Node.js 22+。
+- [Vite](https://vite.dev/) + [React](https://react.dev/) 19 + [TypeScript](https://www.typescriptlang.org/)
+- [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) (Workbox service worker, web app manifest, offline support)
+- [idb](https://github.com/jakearchibald/idb) for IndexedDB storage
+- Web Crypto (PBKDF2-SHA256 + AES-GCM) for encrypted backups
+- A small in-house i18n layer (`src/i18n/`)
+- [Vitest](https://vitest.dev/) for unit tests and [Playwright](https://playwright.dev/) for end-to-end tests
+- ESLint, plus nginx and Docker for self-hosting
+
+## Local development
+
+Requires Node.js 22 or newer.
 
 ```bash
 npm install
-npm run dev          # 本地开发 http://localhost:5173 （加 ?demo 用示例数据）
-npm test             # 单元测试（统计、提醒、备份格式，移植自 iOS 的 PoopStatsTests 等）
-npm run test:e2e     # Playwright 端到端测试（会先构建；首次需要 npx playwright install chromium）
+npm run dev          # dev server at http://localhost:5173 (append ?demo for sample data)
 npm run lint         # ESLint
 npm run typecheck    # TypeScript
-npm run build        # 生成 dist/（静态文件 + Service Worker + manifest）
-npm run icons        # 从字标重新生成 public/icons/ 里的应用图标
+npm run build        # production build into dist/ (static files + service worker + manifest)
+npm run preview      # serve the production build locally
+npm run icons        # regenerate the app icons in public/icons/ from the wordmark
 ```
 
-截图：`npm run build && npx vite preview --port 4173`，然后 `node scripts/screenshots.mjs`（首次需要 `npx playwright install chromium`，或用 `CHROME_PATH` 指向本机 Chrome）。
+`?demo` opens a separate sample database that is regenerated on every reload, so it never touches your real entries.
 
-`?demo` 会打开一个独立的示例数据库（每次刷新重新生成），不会碰到真实记录。
+## Tests
 
-## 部署
+```bash
+npm test             # unit tests (stats, reminders, backup format, i18n)
+npm run test:e2e     # Playwright end-to-end tests against a production build
+```
 
-PooPal 是纯静态站点，没有后端。**必须用 HTTPS 访问**（localhost 除外）：Service Worker（离线、安装到主屏幕）、通知和备份加密（Web Crypto）在 HTTP 下都不可用。
+The first end-to-end run needs a browser: `npx playwright install chromium`, or point `CHROME_PATH` at a local Chrome.
 
-用 Docker（nginx 提供静态文件，容器内监听 80 端口）：
+To refresh the README screenshots: `npm run build && npx vite preview --port 4173`, then `node scripts/screenshots.mjs`.
+
+## Deployment
+
+PooPal is a static site with no backend. It **must be served over HTTPS** (localhost excepted): the service worker (offline use and installing), notifications and backup encryption (Web Crypto) are unavailable over plain HTTP.
+
+### Cloudflare Pages
+
+The public instance at [poopal.pages.dev](https://poopal.pages.dev/) runs on Cloudflare Pages. To deploy your own:
+
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Environment variable: `NODE_VERSION=22` (or newer)
+
+Make sure `index.html`, `sw.js`, `workbox-*.js`, `theme-init.js` and `manifest*.webmanifest` are not cached long-term; otherwise updates won't reach installed apps. Hashed files under `assets/` can be cached forever. `nginx/default.conf` shows the intended caching rules.
+
+### Docker
+
+The image builds the site and serves it with nginx on port 80 inside the container:
 
 ```bash
 docker build -t poopal .
 docker run -d --name poopal --restart unless-stopped -p 8080:80 poopal
 ```
 
-再在前面放一个负责 HTTPS 的反向代理，例如 Caddy：
+Put an HTTPS reverse proxy in front of it, for example Caddy:
 
 ```
 poopal.example.com {
@@ -52,48 +92,60 @@ poopal.example.com {
 }
 ```
 
-想挂在子路径下（如 `https://example.com/poopal/`）：`docker build --build-arg BASE_PATH=/poopal/ -t poopal .`，并让反向代理去掉 `/poopal` 前缀再转发。
+To serve from a sub-path such as `https://example.com/poopal/`, build with `docker build --build-arg BASE_PATH=/poopal/ -t poopal .` and have the reverse proxy strip the `/poopal` prefix.
 
-不用 Docker 的话，`npm run build` 后把 `dist/` 放到任意静态服务器即可；参考 `nginx/default.conf` 的缓存规则（`sw.js`、`index.html`、`manifest.webmanifest` 不要长缓存，否则更新到不了已安装的 App）。
+### Any static host
 
-## 在 iPhone 上使用
+Run `npm run build` (set `BASE_PATH=/your-path/` for a sub-path) and upload `dist/` to any static file server, following the caching rules above.
 
-用 Safari 打开网址 → 分享 → 「添加到主屏幕」。从主屏幕打开后全屏运行、可离线使用。
+## Data and privacy
 
-## 数据和隐私
+- Entries are stored in your browser's IndexedDB; settings (appearance, language, reminders) are stored in localStorage. Nothing is sent to any server.
+- Data belongs to "this browser on this address": switching phones, browsers or domains, or clearing site data, leaves your entries behind. Export a backup regularly from Settings › Backup.
+- Some browsers evict data for sites you haven't opened in a while; apps added to the home screen are usually exempt. PooPal also asks the browser for persistent storage.
 
-- 记录存在浏览器的 IndexedDB 里，设置（外观、语言、提醒）存在 localStorage。没有账号、没有服务器、不联网上传。
-- 数据跟着「这个浏览器 + 这个网址」走：换手机、换浏览器、换域名，或在系统里清除网站数据，记录都会消失。请定期在 设置 › 备份 导出。
-- Safari 会清理 7 天没打开过的「普通网站」的数据；添加到主屏幕的 App 不受这条限制。PooPal 也会请求浏览器「持久存储」。
+## Backup format
 
-## 备份格式
-
-JSON，和 iOS 版完全相同，可以互相导入：
+Plain backups are JSON:
 
 ```json
 { "app": "PooPal", "version": 1, "exportedAt": "2026-11-14T10:00:00.000Z",
-  "entries": [{ "timestamp": "2026-11-14T00:30:00.000Z", "bristolType": 4, "note": "火锅" }] }
+  "entries": [{ "timestamp": "2026-11-14T00:30:00.000Z", "bristolType": 4, "note": "hotpot" }] }
 ```
 
-加密备份：上面的 JSON 用 AES-256-GCM 加密（密钥由 PBKDF2-SHA256、210,000 次迭代、16 字节随机盐派生），`payload` 是 base64 的「12 字节 nonce + 密文 + 16 字节 tag」（即 CryptoKit 的 combined 格式），外面包一层 `{ "app", "format": "encrypted", "version", "kdf", "iterations", "salt", "payload" }`。导入时按时间（精确到秒）合并：新记录加入，已有记录只补上缺的形态或备注，不覆盖。
+Encrypted backups encrypt that JSON with AES-256-GCM, using a key derived with PBKDF2-SHA256 (210,000 iterations, 16-byte random salt). `payload` is base64 of "12-byte nonce + ciphertext + 16-byte tag", wrapped as `{ "app", "format": "encrypted", "version", "kdf", "iterations", "salt", "payload" }`.
 
-## 提醒的限制
+Imports merge by timestamp (to the second): new entries are added, and existing entries only gain a missing Bristol type or note. Nothing is overwritten.
 
-网页没有「定时本地通知」的能力（不接推送服务器的前提下），所以提醒是尽力而为：
+## Reminder limits
 
-- 「太久没来」和「每天提醒」只会在 PooPal 开着、或刚切到后台、页面还活着的时候按时弹出；完全关掉后，会在下次打开时补发（「每天提醒」超过 2 小时就不补了），每种提醒每天最多一次。
-- iPhone 需要 iOS 16.4+，并且必须从主屏幕打开的 PooPal 里才能开启通知；Safari 标签页里不支持。
-- 想要真正准时的提醒，需要接 Web Push 服务器（需要 VAPID 密钥和一个小后端），目前没有做。
+Without a push server, a web page can't schedule local notifications, so reminders are best-effort:
 
-## 结构
+- Reminders fire on time only while PooPal is open or still alive in the background. If it was fully closed, a missed reminder is delivered the next time you open it (daily reminders more than 2 hours late are skipped). Each reminder fires at most once a day.
+- Some mobile browsers only allow notifications for apps added to the home screen.
+- Truly on-time reminders would need a Web Push server (VAPID keys and a small backend), which PooPal doesn't have.
 
-- `src/logic/`：纯逻辑（统计、趋势、心情、布里斯托分型、提醒计划、备份编解码与合并、日期文本、字标几何），都有单元测试
-- `src/data/`：IndexedDB 记录、设置、通知、示例数据
-- `src/components/`：字标、Pal 小伙伴、布里斯托贴纸与选择器、通用控件
-- `src/screens/`：首页、贴纸本（日历 / 列表 / 趋势）、编辑记录、设置
-- `public/icons/`：PWA 图标（由 `scripts/render-icons.mjs` 生成）
-- `nginx/`、`Dockerfile`：部署
+## Project structure
 
-## 设计
+- `src/logic/`: pure logic (stats, trends, mood, Bristol types, reminder planning, backup encoding and merging, date text, wordmark geometry), all unit-tested
+- `src/data/`: IndexedDB entries, settings, notifications, demo data
+- `src/i18n/`: translations, one file per language with the same shape as `zh.ts` (missing keys fail the type check)
+- `src/components/`: wordmark, the Pal buddy, Bristol stickers and picker, shared controls
+- `src/screens/`: Home, Sticker book (calendar / list / trends), entry editor, Settings
+- `e2e/`: Playwright tests
+- `public/icons/`: PWA icons (generated by `scripts/render-icons.mjs`)
+- `nginx/`, `Dockerfile`: self-hosting
 
-视觉规范见 `DESIGN.md`（贴纸手帐风格：颜色 token、贴纸组件、Pal 小伙伴、浅色 / 深色），产品定位见 `PRODUCT.md`。外观可在 设置 › 看起来 › 外观 中切换：跟随系统、浅色、深色。
+See [`DESIGN.md`](DESIGN.md) for the visual system (colors, stickers, the Pal buddy, light and dark) and [`PRODUCT.md`](PRODUCT.md) for the product brief.
+
+## Contributing
+
+Contributions are very welcome! Whether it's a bug fix, a new translation, a design polish or a fresh idea, feel free to open an issue or send a pull request (MR). A few tips:
+
+- Fork the repo and create a branch for your change.
+- Run `npm run lint`, `npm run typecheck` and `npm test` before opening the PR (and `npm run test:e2e` for UI changes).
+- Keep PooPal private: no accounts, trackers or network uploads of user data.
+- For UI changes, follow [`DESIGN.md`](DESIGN.md) and include a screenshot in the PR.
+- New UI text needs entries in all three language files under `src/i18n/`.
+
+Thank you for helping PooPal keep your gut company!

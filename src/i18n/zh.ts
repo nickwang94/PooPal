@@ -223,7 +223,7 @@ export const zh = {
     importFailed: (message: string) => `导入失败：${message}`,
     readFailed: (message: string) => `读取文件失败：${message}`,
     footerEncrypted: '加密后只有输入密码才能导入，密码忘记将无法恢复。',
-    footerPlain: '导出为 JSON 文件，可以存到「文件」或发给自己。导入会合并到现有记录，重复的自动跳过。和 iOS 版 PooPal 的备份互通。',
+    footerPlain: '导出为 JSON 文件，可以存到「文件」或发给自己。导入会合并到现有记录，重复的自动跳过。',
     usePassword: '给备份加个密码',
     newPassword: '设置密码（至少 4 位）',
     repeatPassword: '再输入一次',

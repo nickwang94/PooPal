@@ -2,6 +2,7 @@
   "name": "poopal-web",
   "private": true,
   "version": "1.0.0",
+  "description": "A cute, private poop-frequency and gut-health tracker. Frontend-only PWA: no login, data stays in your browser.",
   "type": "module",
   "scripts": {
     "dev": "vite",

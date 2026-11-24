@@ -1,6 +1,6 @@
 # Surface brief: PooPal app (all screens)
 
-Mode: Operate. Platform: ios. Native controls, Dynamic Type, light + dark with an in-app switch.
+Mode: Operate. Platform: web (mobile-first PWA). Native-feeling controls, scalable type, light + dark with an in-app switch.
 
 Owner feedback that shaped this round: v3 (glazed bathroom tile, teal) read as "too business". This is a personal daily-habit app: warm, friendly, soft, a bit of character and delight, tasteful not childish.
 

@@ -234,7 +234,7 @@ export const en: Messages = {
     readFailed: (message) => `Couldn’t read the file: ${message}`,
     footerEncrypted: 'An encrypted backup can only be imported with its password. A forgotten password can’t be recovered.',
     footerPlain:
-      'Exports a JSON file you can save to Files or send to yourself. Importing merges into your current entries and skips duplicates. Works with backups from PooPal for iOS.',
+      'Exports a JSON file you can save to Files or send to yourself. Importing merges into your current entries and skips duplicates.',
     usePassword: 'Password-protect backups',
     newPassword: 'Password (at least 4 characters)',
     repeatPassword: 'Repeat password',

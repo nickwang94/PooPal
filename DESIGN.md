@@ -130,7 +130,7 @@ components:
 
 # PooPal design system
 
-Source of truth (web app; the original SwiftUI version lives on the `ios-archive` branch):
+Source of truth:
 - `src/styles.css`: tokens as CSS custom properties, stickers, panels, controls.
 - `src/logic/logotype.ts` + `src/components/Logotype.tsx`: the wordmark (also drives the app icon via `scripts/render-icons.mjs`).
 - `src/components/PalBuddy.tsx`: the buddy character.
@@ -146,7 +146,7 @@ PooPal is a sticker habit journal (手帐) for one person's gut. It is warm, sof
 
 - Every visit is a round die-cut sticker pressed onto the day.
 - A small round marigold buddy, the "Pal", greets you, and its face follows how you're doing.
-- It is a mobile-first web app (PWA) in Operate mode, shaped like native iOS: grouped forms, bottom sheets, a floating tab bar.
+- It is a mobile-first web app (PWA) in Operate mode, shaped like a native mobile app: grouped forms, bottom sheets, a floating tab bar.
 - Personality lives in color, stickers, the buddy, the wordmark, copy and motion.
 
 It refuses two looks: the clinical health dashboard (teal, stat-card grids, a business tone) and the cartoon-poop kids' app. The buddy is abstract and never poop-shaped, and there is no emoji anywhere.
@@ -163,7 +163,7 @@ Light and dark are both first-class. Users pick 跟随系统 / 浅色 / 深色 i
 
 ## Typography
 
-SF Pro Rounded everywhere (`--font` on `body`), with the iOS text-style sizes in px: large title 34, title 28, title3 20, body 17, subheadline 15, footnote 13, caption 12/11. Numbers use `font-variant-numeric: tabular-nums` (`.num`). The primary action ("记一下") is heavy, and section titles are bold. The `Logotype` wordmark is the only display voice.
+SF Pro Rounded everywhere (`--font` on `body`), with these text-style sizes in px: large title 34, title 28, title3 20, body 17, subheadline 15, footnote 13, caption 12/11. Numbers use `font-variant-numeric: tabular-nums` (`.num`). The primary action ("记一下") is heavy, and section titles are bold. The `Logotype` wordmark is the only display voice.
 
 ## Layout
 
@@ -197,7 +197,7 @@ SF Pro Rounded everywhere (`--font` on `body`), with the iOS text-style sizes in
   - **Motion:** it blinks every few seconds and hops when you log. Both are off under Reduce Motion.
 - **LogStickerButton:** squishes when pressed (scale 0.95, bouncy spring).
   - Today's visits show as overlapping tilted entry stickers (up to 5, then "+N") in the top corner. Logging adds one and bursts 12 confetti dots in the state colors.
-  - The buddy hops and the phone vibrates briefly where the browser allows it (not on iOS). Confetti is skipped under `prefers-reduced-motion`.
+  - The buddy hops and the phone vibrates briefly where the browser supports the Vibration API. Confetti is skipped under `prefers-reduced-motion`.
 - **WeekStickers / MonthMosaic / DaySticker:** each day is a round sticker.
   - Future days are dashed slots, and empty past days are flat sunk circles.
   - Today and the selected day get a plum ring.
@@ -212,7 +212,7 @@ Casual and warm, like a friend checking in, for example "记一下", "忘了记�
 
 ## Do's and Don'ts
 
-- Do keep the iOS shapes on the web: grouped rows in soft panels, switches, a stepper, segmented controls and date/time pills that open the system picker, tinted plum.
+- Do keep the native-app shapes: grouped rows in soft panels, switches, a stepper, segmented controls and date/time pills that open the system picker, tinted plum.
 - Do keep touch targets at 44pt minimum.
 - Do respect Reduce Motion: no blink, hop or confetti.
 - Don't use emoji, poop shapes, or white text on marigold.
